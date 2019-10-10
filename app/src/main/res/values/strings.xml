@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Go4Lunch</string>
+    <string name="toolbar_title">I\'m hungry !</string>
+
+    <!-- Bottom view values -->
+    <string name="map_view_title">Map View</string>
+    <string name="list_view_title">List View</string>
+    <string name="workmates_title">Workmates</string>
+
+</resources>
