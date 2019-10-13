@@ -1,10 +1,19 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- App name -->
     <string name="app_name">Go4Lunch</string>
+
+    <!-- Toolbar title -->
     <string name="toolbar_title">I\'m hungry !</string>
 
     <!-- Bottom view values -->
     <string name="map_view_title">Map View</string>
     <string name="list_view_title">List View</string>
     <string name="workmates_title">Workmates</string>
+
+    <!-- Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). -->
+    <string name="facebook_application_id" translatable="false">2359644737682345</string>
+    <string name="facebook_login_protocol_scheme" translatable="false">fb2359644737682345</string>
+
 
 </resources>

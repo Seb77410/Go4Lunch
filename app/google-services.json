@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "312341374048",
+    "firebase_url": "https://p6-exercice.firebaseio.com",
+    "project_id": "p6-exercice",
+    "storage_bucket": "p6-exercice.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:312341374048:android:f091ea07f3591ae046cf05",
+        "android_client_info": {
+          "package_name": "com.application.seb.go4lunch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "312341374048-q7nivn55m3e1un4m3s9jrgrog7gsjmu3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACy26J0FEHH-NCYDK1tYlIgjLa51AVImw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "312341374048-q7nivn55m3e1un4m3s9jrgrog7gsjmu3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
