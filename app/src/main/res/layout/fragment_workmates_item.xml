@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
+
+    <ImageView
+        android:id="@+id/workmatesFragment_recyclerView_userImage"
+        android:layout_width="82dp"
+        android:layout_height="82dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="10dp"
+        android:contentDescription="Workmates photo" />
+
+    <TextView
+        android:id="@+id/workmatesFragment_recyclerView_userTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/workmatesFragment_recyclerView_userImage"
+        android:layout_alignBottom="@+id/workmatesFragment_recyclerView_userImage"
+        android:layout_alignParentEnd="true"
+        android:textSize="15sp"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="30dp"
+        android:layout_toEndOf="@+id/workmatesFragment_recyclerView_userImage" />
+
+    <View
+        android:id="@+id/workmatesFragment_recyclerView_userSeparator"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_below="@+id/workmatesFragment_recyclerView_userTextView"
+        android:layout_alignStart="@+id/workmatesFragment_recyclerView_userTextView"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="0dp"
+        android:background="#FF909090" />
+
+</RelativeLayout>

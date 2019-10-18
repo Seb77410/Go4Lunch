@@ -14,6 +14,9 @@
     <!-- Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). -->
     <string name="facebook_application_id" translatable="false">2359644737682345</string>
     <string name="facebook_login_protocol_scheme" translatable="false">fb2359644737682345</string>
+    
+    <!-- Error message -->
+    <string name="fireStore_request_error">Erreur lors de la requête FireStore</string>
 
 
 </resources>
