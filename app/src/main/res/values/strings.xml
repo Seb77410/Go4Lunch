@@ -14,9 +14,16 @@
     <!-- Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). -->
     <string name="facebook_application_id" translatable="false">2359644737682345</string>
     <string name="facebook_login_protocol_scheme" translatable="false">fb2359644737682345</string>
-    
+
+    <!-- Twitter application ID -->
+    <string name="twitter_consumer_key" translatable="false">SABpYB8vKtQuuJ9Stx7xki3zz</string>
+    <string name="twitter_consumer_secret" translatable="false">MLNlbtix6Nw1rFFMBrA5dLF1QH1835Xwf6L0bOH2u9wsLXLHQs</string>
+
     <!-- Error message -->
     <string name="fireStore_request_error">Erreur lors de la requête FireStore</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 
 </resources>

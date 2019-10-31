@@ -8,4 +8,7 @@ public class Constants {
 
     // FireBase sign in code
     public static final int RC_SIGN_IN = 13;
+
+    // Location request code
+    public static final int REQUEST_CODE = 12;
 }
