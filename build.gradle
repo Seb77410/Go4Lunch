@@ -5,11 +5,10 @@ buildscript {
         google()
         jcenter()
         mavenCentral()
-
-
     }
+
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.android.tools.build:gradle:3.5.2'
         classpath 'com.google.gms:google-services:4.3.2'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -20,25 +19,24 @@ buildscript {
 allprojects {
     repositories {
 
-        // Resolve build failure with FireBase
+        // Build control
         configurations.all {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
                 def requested = details.requested
                 if (requested.group == 'com.google.android.gms') {
-                    details.useVersion '12.0.1'
+                    details.useVersion '15.0.0'
                 }
                 if (requested.group == 'com.google.firebase') {
-                    details.useVersion '12.0.1'
+                    details.useVersion '15.0.0'
                 }
             }
         }
-
         google()
         jcenter()
         flatDir {
-            dirs 'libs'
+        dirs 'libs'
         }
-        
+
     }
 }
 

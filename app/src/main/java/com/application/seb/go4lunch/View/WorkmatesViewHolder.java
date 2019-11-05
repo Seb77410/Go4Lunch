@@ -1,5 +1,6 @@
 package com.application.seb.go4lunch.View;
 
+import android.graphics.Typeface;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -18,21 +19,40 @@ import com.bumptech.glide.request.RequestOptions;
 
     private TextView textView;
     private ImageView imageView;
+    private View itemView;
 
     WorkmatesViewHolder(@NonNull View itemView) {
         super(itemView);
+        this.itemView = itemView;
         textView = itemView.findViewById(R.id.workmatesFragment_recyclerView_userTextView);
         imageView = itemView.findViewById(R.id.workmatesFragment_recyclerView_userImage);
     }
 
     void updateWithWorkmatesList(User user, RequestManager glide){
-        Log.e("Image url : ", user.getUrlPicture());
-        textView.setText(user.getUsername());
-        glide.load(user.getUrlPicture())
-                .apply(RequestOptions.circleCropTransform())
-                .placeholder(R.drawable.no_image)
-                .error(R.drawable.no_image)
-                .into(imageView);
+
+        // If user selected a restaurant
+        if(user.getRestaurant() != null) {
+            textView.setText(user.getUsername() + "(" + user.getRestaurant() + ")");
+        }
+        else{
+            textView.setText(user.getUsername() + " hasn't decided yet");
+            textView.setTextColor(itemView.getContext().getResources().getColor(R.color.grey));
+            textView.setTypeface(null, Typeface.ITALIC);
+        }
+
+        // If user profile have photo
+        if(user.getUrlPicture() != null) {
+            Log.e("Image url : ", user.getUrlPicture());
+            glide.load(user.getUrlPicture())
+                    .apply(RequestOptions.circleCropTransform())
+                    .placeholder(R.drawable.no_image)
+                    .error(R.drawable.no_image)
+                    .into(imageView);
+        }else {
+            glide.load(R.drawable.no_image)
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(imageView);
+        }
     }
 
 }

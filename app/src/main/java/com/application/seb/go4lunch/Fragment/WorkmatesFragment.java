@@ -21,6 +21,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
+
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -62,10 +63,10 @@ public class WorkmatesFragment extends Fragment {
     // Configure RecyclerView, Adapter, LayoutManager & glue it together
     private void configureRecyclerView(List<User> userList) {
 
-        Log.e("User list : ", userList.toString());
-        Log.e("User list name 1: ", userList.get(0).getUsername());
-        Log.e("User list size : ", String.valueOf(userList.size()));
-        Log.e("User list name 2: ", userList.get(1).getUsername());
+        //Log.e("User list : ", userList.toString());
+        //Log.e("User list name 1: ", userList.get(0).getUsername());
+        //Log.e("User list size : ", String.valueOf(userList.size()));
+        //Log.e("User list name 2: ", userList.get(1).getUsername());
 
         // Create adapter passing the list of users
         this.adapter = new WorkmatesAdapter(userList, Glide.with(this));
@@ -87,6 +88,7 @@ public class WorkmatesFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
+
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 //We convert to User object list
                                 Log.e("document :", document.toString());
@@ -94,6 +96,8 @@ public class WorkmatesFragment extends Fragment {
                                 userList.add(user);
                                 Log.e("List d'utilisateurs :", userList.toString());
                             }
+
+
                         } else {
                             Log.e("Error", "Error getting documents: ", task.getException());
                         }

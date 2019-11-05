@@ -4,21 +4,19 @@ import androidx.annotation.NonNull;
 
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.Base.BaseActivity;
+import com.application.seb.go4lunch.Fragment.ListViewFragment;
 import com.application.seb.go4lunch.Fragment.MapFragment;
 import com.application.seb.go4lunch.Fragment.WorkmatesFragment;
+import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
-import com.facebook.places.Places;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,18 +34,20 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentActivity;
+import androidx.multidex.MultiDex;
 
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import static com.application.seb.go4lunch.Utils.Constants.RC_SIGN_IN;
 import static java.security.AccessController.getContext;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener{
 
     // References
     Context context = this;
@@ -56,6 +56,14 @@ public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
     GoogleMap mMap;
     Fragment mapFragment;
+    GooglePlacesResponse googlePlacesResponse;
+
+    // For multidex error
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
 
     //----------------------------------------------------------------------------------------------
     // On Create
@@ -66,14 +74,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         this.startSignInActivity();
         this.configureToolbar();
         this.configureBottomView();
+        // Default view is map fragment
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.activity_main_frame_layout, new MapFragment())
                 .commit();
-
     }
 
     //----------------------------------------------------------------------------------------------
@@ -82,18 +91,23 @@ public class MainActivity extends AppCompatActivity {
 
     private void configureToolbar(){
         mToolbar = findViewById(R.id.activity_main_toolbar);
-        //setSupportActionBar(mToolbar);
     }
 
     //----------------------------------------------------------------------------------------------
     // Configure BottomView
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * This method glue the BottomView to MainActivity layout and add listener for his button
+     */
     private void configureBottomView(){
         bottomNavigationView = findViewById(R.id.activity_main_bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
     }
 
+    /**
+     * This method configure tabs BottomView content
+     */
     private BottomNavigationView.OnNavigationItemSelectedListener navListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -109,6 +123,12 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case R.id.action_list :
+                    selectedFragment = ListViewFragment.newInstance(googlePlacesResponse);
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.activity_main_frame_layout, selectedFragment)
+                            .commit();
+                    return true;
 
                 case R.id.action_workmates:
                     selectedFragment = new WorkmatesFragment();
@@ -129,7 +149,9 @@ public class MainActivity extends AppCompatActivity {
     // FireBase Login
     //----------------------------------------------------------------------------------------------
 
-    // Launch Sign-In Activity
+    /**
+     * Launch and configure FireBase Sign-In Activity
+     */
     private void startSignInActivity(){
 
         startActivityForResult(
@@ -147,7 +169,10 @@ public class MainActivity extends AppCompatActivity {
                 RC_SIGN_IN);
     }
 
-    // Result after sign in
+    /**
+     * Result after sign in : add user data to FireStore database and notify user that sign-in is OK
+     * or not OK with a Toast
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -157,7 +182,12 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) { // SUCCESS
                 Log.d("Utilisateur enregistré ","User id = " + Objects.requireNonNull(this.getCurrentUser()).getUid() + ", User name = " + this.getCurrentUser().getDisplayName() + ", User photo url : " + String.valueOf(this.getCurrentUser().getPhotoUrl()));
                 // We save User infos into FireStore database
-                FireStoreUserRequest.createUser(Objects.requireNonNull(this.getCurrentUser()).getUid(), this.getCurrentUser().getDisplayName(), Objects.requireNonNull(this.getCurrentUser().getPhotoUrl()).toString());
+                if (this.getCurrentUser().getPhotoUrl() != null) {
+                    FireStoreUserRequest.createUser(Objects.requireNonNull(this.getCurrentUser()).getUid(), this.getCurrentUser().getDisplayName(), Objects.requireNonNull(this.getCurrentUser().getPhotoUrl()).toString());
+                }else{
+                    FireStoreUserRequest.createUser(Objects.requireNonNull(this.getCurrentUser()).getUid(), this.getCurrentUser().getDisplayName());
+                }
+
             } else { // ERRORS
                 if (response == null) {
                     Toast.makeText(getApplicationContext(), "Erreur : authentification annulée", Toast.LENGTH_LONG).show();
@@ -178,5 +208,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+    }
+
+    @Override
+    public void onFragmentSetGooglePlacesResponse(GooglePlacesResponse googlePlacesResponse) {
+        this.googlePlacesResponse = googlePlacesResponse;
     }
 }

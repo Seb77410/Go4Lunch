@@ -11,4 +11,8 @@ public class Constants {
 
     // Location request code
     public static final int REQUEST_CODE = 12;
+
+    // Places API service values
+     public static final String JSON_RETURN_FORMAT = "json";
+
 }

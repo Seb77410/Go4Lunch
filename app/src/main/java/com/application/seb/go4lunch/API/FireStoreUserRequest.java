@@ -23,6 +23,11 @@ public class FireStoreUserRequest {
         return FireStoreUserRequest.getUsersCollection().document(uid).set(userToCreate);
     }
 
+    public static Task<Void> createUser(String uid, String username) {
+        User userToCreate = new User(uid, username);
+        return FireStoreUserRequest.getUsersCollection().document(uid).set(userToCreate);
+    }
+
     // --- GET ---
 
     public static Task<DocumentSnapshot> getUser(String uid){
@@ -35,8 +40,8 @@ public class FireStoreUserRequest {
         return FireStoreUserRequest.getUsersCollection().document(uid).update("username", username);
     }
 
-    public static Task<Void> updateIsMentor(String uid, Boolean isMentor) {
-        return FireStoreUserRequest.getUsersCollection().document(uid).update("isMentor", isMentor);
+    public static Task<Void> updateRestaurant(String uid, String restaurant) {
+        return FireStoreUserRequest.getUsersCollection().document(uid).update("restaurant", restaurant);
     }
 
     // --- DELETE ---
