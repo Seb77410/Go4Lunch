@@ -2,18 +2,13 @@ package com.application.seb.go4lunch.Fragment;
 
 
 import android.Manifest;
-import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -23,14 +18,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.application.seb.go4lunch.Controller.RestaurantDetails;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.Utils.GooglePlacesStream;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -41,10 +34,11 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.gson.Gson;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 import io.reactivex.disposables.Disposable;
@@ -52,9 +46,7 @@ import io.reactivex.observers.DisposableObserver;
 
 public class MapFragment extends Fragment implements
         OnMapReadyCallback
-        ,LocationListener
-        ,GoogleApiClient.ConnectionCallbacks
-        ,GoogleApiClient.OnConnectionFailedListener
+        ,GoogleMap.OnMarkerClickListener
         {
 
     public MapFragment() {
@@ -62,18 +54,44 @@ public class MapFragment extends Fragment implements
     }
 
     private GoogleMap mMap;
-    private GoogleApiClient googleApiClient;
-    private LocationRequest locationRequest;
-    private Location lastLocation;
     private Marker currentUserLocationMarker;
+    private Disposable disposable;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private List<GooglePlacesResponse.Result> placesResponseList;
 
 
-    public interface OnFragmentInteractionListener {
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        if (marker.getTag() != null) {
+            // Get marker data
+            int markerTag = (int) marker.getTag();
+            Log.d("Marker arguments", "marker list position is : " + markerTag);
+
+            // Set marker place details to string value
+            GooglePlacesResponse.Result placeInfos = placesResponseList.get(markerTag);
+            Gson gson = new Gson();
+            String stringPlaceInfos = gson.toJson(placeInfos);
+
+            //Start RestaurantDetails activity with restaurant details as arguments
+            Intent intent = new Intent(getActivity(), RestaurantDetails.class);
+            intent.putExtra("PLACE_DETAILS" ,stringPlaceInfos);
+            startActivity(intent);
+        }
+        return false;
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Places list callback for MainActivity
+    //----------------------------------------------------------------------------------------------
+
+     public interface OnFragmentInteractionListener {
         void onFragmentSetGooglePlacesResponse(GooglePlacesResponse googlePlacesResponse);
+        void onFragmentSetUserLocation(LatLng userLocation);
     }
 
 
-            //----------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     // On Create
     //----------------------------------------------------------------------------------------------
 
@@ -81,6 +99,9 @@ public class MapFragment extends Fragment implements
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
+
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(Objects.requireNonNull(getContext()));
+        //mFusedLocationProviderClient.requestLocationUpdates(mFusedLocationProviderClient.getLastLocation(),  , null);
 
         // Configure view
         try {
@@ -108,57 +129,28 @@ public class MapFragment extends Fragment implements
                 && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, Constants.REQUEST_CODE);
         } else {
-            buildGoogleApiClient(); // ==> /!\/!\ Using deprecated method /!\/!\
             mMap.setMyLocationEnabled(true);
+            updateUserLocation();
+            mMap.setOnMarkerClickListener(this);
         }
     }
 
-
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        lastLocation = location;
-
-        if (currentUserLocationMarker != null) {
-            currentUserLocationMarker.remove();
-        }
-
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        Log.e("User Location ",  location.getLatitude() +" , " + location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("It's me");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-
-        currentUserLocationMarker = mMap.addMarker(markerOptions);
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-
-        if (googleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
-        }
-
-        getNearbyPlaces();
-    }
-
-
-    private void getNearbyPlaces(){
+    private void getNearbyPlaces(LatLng lastLocation){
         HashMap<String, String> optionsMap = new HashMap<>();
-        optionsMap.put("location", lastLocation.getLatitude() + "," + lastLocation.getLongitude());
-        //optionsMap.put("radius", "150000");
+        optionsMap.put("location", lastLocation.latitude + "," + lastLocation.longitude);
         //optionsMap.put("type", "food,restaurant");
-        optionsMap.put("keyword", "restaurant,pizza");
+        optionsMap.put("keyword", "restaurant,pizza"); //TODO : Bar
         optionsMap.put("rankby", "distance");
         optionsMap.put("key", "AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
 
-        Disposable disposable = GooglePlacesStream.streamFetchQueryRequest(optionsMap)
+        disposable = GooglePlacesStream.streamFetchQueryRequest(optionsMap)
                 .subscribeWith(new DisposableObserver<GooglePlacesResponse>(){
 
                     @Override
                     public void onNext(GooglePlacesResponse value) {
                         Log.e("Places response", value.toString());
                         Log.e("Places response", String.valueOf(value.getResults().size()));
+                        placesResponseList = value.getResults();
 
 
                         if (value.getResults().size() > 0){
@@ -173,20 +165,13 @@ public class MapFragment extends Fragment implements
                             markerOptions.position(latLng);
                             markerOptions.title(value.getResults().get(x).getName());
 
-                            //markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+
                             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
-
-                            //markerOptions.icon(bitmapDescriptorFromVector(getContext(), R.drawable.restaurant_green));
-                            //markerOptions.icon(bitmapDescriptorFromVector(getContext(), R.drawable.restaurants_red));
-
-                            //markerOptions.icon(BitmapDescriptorFactory.fromBitmap())
-
-                            mMap.addMarker(markerOptions);
+                            Marker mMarker = mMap.addMarker(markerOptions);
+                            mMarker.setTag(x);
 
                             // Send GooglePlacesResponse to MainActivity
                             ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetGooglePlacesResponse(value);
-
-
                             }
                         }
                     }
@@ -203,54 +188,43 @@ public class MapFragment extends Fragment implements
                 });
     }
 
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vertorRessourceId) {
-        Drawable vectorDrawable = ContextCompat.getDrawable(context, vertorRessourceId);
-        if (vectorDrawable != null) {
-            vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
-        }
-        Bitmap bitmap = null;
-        if (vectorDrawable != null) {
-            bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        }
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-
     //----------------------------------------------------------------------------------------------
     // Get User location
     // ---------------------------------------------------------------------------------------------
 
+    private void updateUserLocation() {
 
-    // Start location request
-    private synchronized void buildGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(Objects.requireNonNull(getContext()))
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        googleApiClient.connect();
-    }
+        mFusedLocationProviderClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    // Got last known location. In some rare situations this can be null.
+                    if (location != null) {
+                        Log.e("User Location ",  location.getLatitude() +" , " + location.getLongitude());
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
+                        // Send user location to MainActivity
+                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetUserLocation(latLng);
 
-        locationRequest = LocationRequest.create();
-        locationRequest.setInterval(1100);
-        locationRequest.setFastestInterval(1100);
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+                        // Remove old marker if necessary
+                        if (currentUserLocationMarker != null) {
+                            currentUserLocationMarker.remove();
+                        }
 
-        if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getContext()), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
-        }
-    }
+                        // Add marker to User current position
+                        MarkerOptions markerOptions = new MarkerOptions();
+                        markerOptions.position(latLng);
+                        markerOptions.title("It's me");
+                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                        currentUserLocationMarker = mMap.addMarker(markerOptions);
 
-    @Override
-    public void onConnectionSuspended(int i) {
-    }
+                        // Move camera to current position
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        // Search nearby places
+                        getNearbyPlaces(latLng);
+                    }
+                });
+
+
     }
 
     //----------------------------------------------------------------------------------------------
@@ -266,9 +240,8 @@ public class MapFragment extends Fragment implements
         if (requestCode == Constants.REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getContext()), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        buildGoogleApiClient(); // ==> /!\/!\ Using deprecated method /!\/!\
                         mMap.setMyLocationEnabled(true);
-                        getNearbyPlaces();
+                        updateUserLocation();
                 }
             }
         }
@@ -278,8 +251,10 @@ public class MapFragment extends Fragment implements
     // On Destroy
     //----------------------------------------------------------------------------------------------
 
-    public void onDestroyView()
-    {
+    public void onDestroyView() {
+
+        if (this.disposable != null && !this.disposable.isDisposed()) this.disposable.dispose();
+
         try {
             Fragment fragment = (getChildFragmentManager().findFragmentById(R.id.mainMap));
             if (fragment != null) {

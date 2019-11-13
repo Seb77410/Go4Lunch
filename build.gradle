@@ -19,24 +19,14 @@ buildscript {
 allprojects {
     repositories {
 
-        // Build control
-        configurations.all {
-            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                def requested = details.requested
-                if (requested.group == 'com.google.android.gms') {
-                    details.useVersion '15.0.0'
-                }
-                if (requested.group == 'com.google.firebase') {
-                    details.useVersion '15.0.0'
-                }
-            }
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:deprecation"
         }
         google()
         jcenter()
         flatDir {
         dirs 'libs'
         }
-
     }
 }
 

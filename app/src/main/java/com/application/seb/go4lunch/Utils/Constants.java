@@ -15,4 +15,7 @@ public class Constants {
     // Places API service values
      public static final String JSON_RETURN_FORMAT = "json";
 
+    // Google places max rating
+    public static int GOOGL_MAX_RATING = 5;
+
 }

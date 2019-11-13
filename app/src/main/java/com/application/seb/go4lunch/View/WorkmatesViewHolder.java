@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.application.seb.go4lunch.Model.User;
@@ -36,7 +37,7 @@ import com.bumptech.glide.request.RequestOptions;
         }
         else{
             textView.setText(user.getUsername() + " hasn't decided yet");
-            textView.setTextColor(itemView.getContext().getResources().getColor(R.color.grey));
+            textView.setTextColor(ContextCompat.getColor( itemView.getContext(),R.color.grey));
             textView.setTypeface(null, Typeface.ITALIC);
         }
 
@@ -52,6 +53,7 @@ import com.bumptech.glide.request.RequestOptions;
             glide.load(R.drawable.no_image)
                     .apply(RequestOptions.circleCropTransform())
                     .into(imageView);
+            Log.e("WorkmatesViewHolder", "Workmates do not have image");
         }
     }
 

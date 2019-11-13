@@ -17,6 +17,7 @@ import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.View.ListViewAdapter;
 import com.application.seb.go4lunch.View.WorkmatesAdapter;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
@@ -28,15 +29,16 @@ public class ListViewFragment extends Fragment {
     GooglePlacesResponse googlePlacesResponse;
     private ListViewAdapter adapter;
     private RecyclerView recyclerView;
-
+    private LatLng userLocation;
 
     public ListViewFragment() {
         // Required empty public constructor
     }
 
-    public static ListViewFragment newInstance(GooglePlacesResponse googlePlacesResponse){
+    public static ListViewFragment newInstance(GooglePlacesResponse googlePlacesResponse, LatLng userLocation){
         ListViewFragment frag = new ListViewFragment();
         frag.googlePlacesResponse = googlePlacesResponse;
+        frag.userLocation = userLocation;
         return frag;
     }
 
@@ -48,16 +50,19 @@ public class ListViewFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_list_view, container, false);
         recyclerView = rootView.findViewById(R.id.listViewRecyclerView);
 
-        configureRecyclerView(googlePlacesResponse.getResults());
-
+        if (googlePlacesResponse != null) {
+            configureRecyclerView(googlePlacesResponse.getResults(), userLocation);
+        }else{
+            //TODO : dire ce qu'il serra à faire si l'utilisateur n'est pas géolocaliser
+        }
         return rootView;
     }
 
     // Configure RecyclerView, Adapter, LayoutManager & glue it together
-    private void configureRecyclerView(List<GooglePlacesResponse.Result> placesList) {
+    private void configureRecyclerView(List<GooglePlacesResponse.Result> placesList, LatLng userLocation) {
 
         // Create adapter passing the list of users
-        this.adapter = new ListViewAdapter(placesList, Glide.with(this));
+        this.adapter = new ListViewAdapter(placesList, userLocation ,Glide.with(this));
         // Attach the adapter to the recycler view to populate items
         this.recyclerView.setAdapter(this.adapter);
         // Set layout manager to position the items

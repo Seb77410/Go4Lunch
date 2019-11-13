@@ -12,17 +12,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
 import com.bumptech.glide.RequestManager;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
 public class ListViewAdapter extends RecyclerView.Adapter<ListViewViewHolder> {
 
    private List<GooglePlacesResponse.Result> placesList;
+   private LatLng userLocation;
    private RequestManager glide;
 
 
-    public ListViewAdapter(List<GooglePlacesResponse.Result> placesList, RequestManager glide) {
+    public ListViewAdapter(List<GooglePlacesResponse.Result> placesList, LatLng userLocation, RequestManager glide) {
         this.placesList = placesList;
+        this.userLocation = userLocation;
         this.glide = glide;
     }
 
@@ -42,7 +45,7 @@ public class ListViewAdapter extends RecyclerView.Adapter<ListViewViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ListViewViewHolder holder, int position) {
         GooglePlacesResponse.Result place = placesList.get(position);
-        holder.updateWithPlacesList(place, glide);
+        holder.updateWithPlacesList(place, userLocation, glide);
     }
 
     @Override
