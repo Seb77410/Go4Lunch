@@ -2,7 +2,6 @@ package com.application.seb.go4lunch.Utils;
 
 import android.util.Log;
 
-import com.application.seb.go4lunch.Model.GooglePlaceDetailsResponse;
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 

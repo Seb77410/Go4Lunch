@@ -123,16 +123,12 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
                     return true;
 
                 case R.id.action_workmates:
-                    Intent intent = new Intent(getApplicationContext(), RestaurantDetails.class);
-                    startActivity(intent);
-
-                    /*
                     selectedFragment = new WorkmatesFragment();
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(R.id.activity_main_frame_layout, selectedFragment)
                             .commit();
-                    */
+
                     return true;
 
 

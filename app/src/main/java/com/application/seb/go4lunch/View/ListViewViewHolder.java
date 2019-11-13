@@ -3,7 +3,6 @@ package com.application.seb.go4lunch.View;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -13,23 +12,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
-import com.application.seb.go4lunch.Utils.GooglePlacesStream;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.Gson;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-
-import io.reactivex.disposables.Disposable;
-import io.reactivex.observers.DisposableObserver;
 
 public class ListViewViewHolder extends RecyclerView.ViewHolder {
 
@@ -63,12 +51,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
         setPlaceDistance(place, userLocation);
         setPlaceRatingBar(place);
         setPlaceImage(place, glide);
-        //setPlaceTimes(place);
         isOpenOrClose(place);
-
-/*
-
-*/
 
     }
 
@@ -103,7 +86,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
             glide.load(photoUrl)
                     .apply(RequestOptions.centerCropTransform())
                     .placeholder(R.drawable.no_image)
-                    .error(R.drawable.no_image)
+                    //.error(R.drawable.no_image)
                     .into(placeImage);
         }
         else {
@@ -123,6 +106,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
             }
         } else {
             placeTimes.setText("Horaires inconnus");
+            placeTimes.setTextColor(Color.GRAY);
             placeTimes.setTypeface(null, Typeface.ITALIC);
         }
 

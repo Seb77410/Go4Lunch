@@ -6,11 +6,11 @@ import androidx.core.content.ContextCompat;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RatingBar;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
@@ -18,7 +18,6 @@ import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.GooglePlacesStream;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
@@ -28,10 +27,8 @@ import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 
-import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.DisposableObserver;
 
 public class RestaurantDetails extends AppCompatActivity {
@@ -47,6 +44,10 @@ public class RestaurantDetails extends AppCompatActivity {
     Calendar currentDayCldr;
     Calendar openingHours;
     Calendar closingHours;
+
+    //----------------------------------------------------------------------------------------------
+    // OnCreate
+    //----------------------------------------------------------------------------------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +67,19 @@ public class RestaurantDetails extends AppCompatActivity {
         placeName.setText(place.getName());
         placeAddress.setText(place.getVicinity());
         setPlaceRatingBar();
-        setPlaceTimes();
+
+        Handler h =new Handler() ;
+        h.postDelayed(new Runnable() {
+            public void run() {
+                setPlaceTimes();
+            }
+
+        }, 2000);
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Showing restaurant details on UI
+    //----------------------------------------------------------------------------------------------
 
     /**
      * This method get place rating and show it on UI
@@ -76,7 +87,7 @@ public class RestaurantDetails extends AppCompatActivity {
     private void setPlaceRatingBar(){
         float percentagePlaceRating = (float) ((place.getRating()*100)/5);
         float myPlaceRating = (3*percentagePlaceRating)/100;
-        Log.e("RestaurantDetails" ,"Place rate : " + String.valueOf(myPlaceRating));
+        Log.e("RestaurantDetails" ,"Place rate : " + myPlaceRating);
         placeRatingBar.setRating(myPlaceRating);
     }
 
@@ -139,19 +150,37 @@ public class RestaurantDetails extends AppCompatActivity {
      * - else : app show place closing hour
      */
     private void setPlaceTimes(){
-
         Log.e("RestaurantDetails", "SetPlaceTimes : Place id is " + place.getId());
-
         HashMap<String, String> optionsMap = new HashMap<>();
+        configurePlaceDetailsRequest(place, optionsMap);
+        executePlaceDetailsRequest(optionsMap);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Utils for setPlaceTimes()
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Configure a HashMap as query for PlaceDetails request
+     * @param place
+     * @param optionsMap
+     */
+    private void configurePlaceDetailsRequest(GooglePlacesResponse.Result place, HashMap<String, String> optionsMap){
         optionsMap.put("place_id", place.getPlaceId());
         optionsMap.put("fields","opening_hours");
         optionsMap.put("key","AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
 
+    }
+
+    /**
+     * Execute a PlaceDetails request according current place
+     * @param optionsMap
+     */
+    private void executePlaceDetailsRequest(HashMap<String, String> optionsMap){
         GooglePlacesStream.streamFetchDetailsRequest(optionsMap)
                 .subscribeWith(new DisposableObserver<GooglePlaceOpeningHoursResponse>() {
                     @Override
                     public void onNext(GooglePlaceOpeningHoursResponse value) {
-
                         // Set current day into Integer
                         currentDay = convertCurrentDayIntoInteger(currentDay);
 
@@ -161,45 +190,9 @@ public class RestaurantDetails extends AppCompatActivity {
                         Log.e("SetPlacesTimes", "La réponse de la requete des details : " + mValue);
 
                         // If response is successful
-                        if (value.getStatus().equals("OK")) {
-                            // We convert open/close String values into Calendar value
-                            openingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getOpen().getTime());
-                            closingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime());
-
-                            // Calculate difference between closing hour
-                            currentDayCldr = Calendar.getInstance();
-                            int hoursDifference = closingHours.get(Calendar.HOUR_OF_DAY) - currentDayCldr.get(Calendar.HOUR_OF_DAY);
-                            int minutesDifferences = closingHours.get(Calendar.MINUTE) - currentDayCldr.get(Calendar.MINUTE);
-                            Log.e("RestaurantDetails", "setPlaceTimes : horaires de fermeture : " + hoursDifference+"h"+ minutesDifferences);
-
-                            // And we show restaurant closing hours to UI
-                            // Si le restaurant ferme dans moins de 30 min
-                            if (hoursDifference == 0 && minutesDifferences >= 30) {
-                                placeTimes.setTextColor(Color.RED);
-                                placeTimes.setText("Closing Soon " + hoursDifference + "h" + minutesDifferences);
-                            }
-                            // Sinon
-                                // Si les minutes de fermeture = 0 = on affiche uniquement l'heure
-                                // de fermeture
-                            else if(closingHours.get(Calendar.MINUTE) == 0){
-                                placeTimes.setText("Ouvert jus'qu'à " + closingHours.get(Calendar.HOUR_OF_DAY)+"h");
-                            }
-                                // Sinon, on affiche l'heure et les minutes de fermeture
-                            else {
-                                placeTimes.setText("Ouvert jus'qu'à " + closingHours.get(Calendar.HOUR_OF_DAY) + "h" + closingHours.get(Calendar.MINUTE));
-                            }
-
-                        }
-
-
-                        // Sinon
-                            // Si on a atteint la limite de requete, on affiche qu'on a atteint cette limite
-                        else if (value.getStatus().equals("OVER_QUERY_LIMIT")){
-                            placeTimes.setText("OVER_QUERY_LIMIT");
-                            Log.e("RestaurantDetails", "setPlacesTimes : place request OVER_QUERY_LIMIT");
-                        }
-
-
+                        whenResponseSuccessful(value);
+                        // else
+                        whenResponseNotSuccessful(value);
                     }
 
                     @Override
@@ -210,6 +203,65 @@ public class RestaurantDetails extends AppCompatActivity {
                     public void onComplete() {
                     }
                 });
+    }
+
+    /**
+     * Define app comportment if PlaceDetails is successful
+     * @param value is a GooglePlaceOpeningHoursResponse instance that PlaceDetails request return
+     */
+    private void whenResponseSuccessful(GooglePlaceOpeningHoursResponse value){
+
+        if (value.getStatus().equals("OK")) {
+            // We convert open/close String values into Calendar value
+            openingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getOpen().getTime());
+            closingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime());
+
+            // Calculate difference between closing hour
+            currentDayCldr = Calendar.getInstance();
+            int hoursDifference = closingHours.get(Calendar.HOUR_OF_DAY) - currentDayCldr.get(Calendar.HOUR_OF_DAY);
+            int minutesDifferences = closingHours.get(Calendar.MINUTE) - currentDayCldr.get(Calendar.MINUTE);
+            Log.e("RestaurantDetails", "setPlaceTimes : horaires de fermeture : " + hoursDifference+"h"+ minutesDifferences);
+
+            // And we show restaurant closing hours to UI
+            selectPlaceTimesMessage(hoursDifference, minutesDifferences);
+        }
+    }
+
+    /**
+     * Define app comportment if PlaceDetails request is not successful
+     * @param value is a GooglePlaceOpeningHoursResponse instance that PlaceDetails request return
+     */
+    private void whenResponseNotSuccessful(GooglePlaceOpeningHoursResponse value){
+        // Si on a atteint la limite de requete, on affiche qu'on a atteint cette limite
+        if (value.getStatus().equals("OVER_QUERY_LIMIT")){
+            placeTimes.setText("OVER_QUERY_LIMIT");
+            Log.e("RestaurantDetails", "setPlacesTimes : place request OVER_QUERY_LIMIT");
+        }
+    }
+
+    /**
+     * This method select a message to show as place time
+     * - If restaurant will close in next 30 min, message will be : "Closing soon"
+     * - Else message will be : "Open until  + closing hour "
+     * @param hoursDifference is difference hour between current hour and closing hour
+     * @param minutesDifferences is difference minute between current minute and closing minute
+     */
+    private void selectPlaceTimesMessage(int hoursDifference, int minutesDifferences){
+        // Si le restaurant ferme dans moins de 30 min
+        if (hoursDifference == 0 && minutesDifferences >= 30) {
+            placeTimes.setTextColor(Color.RED);
+            placeTimes.setText("Closing Soon " + hoursDifference + "h" + minutesDifferences);
+        }
+        // Sinon
+        // Si les minutes de fermeture = 0 = on affiche uniquement l'heure
+        // de fermeture
+        else if(closingHours.get(Calendar.MINUTE) == 0){
+            placeTimes.setText("Ouvert jus'qu'à " + closingHours.get(Calendar.HOUR_OF_DAY)+"h");
+        }
+        // Sinon, on affiche l'heure et les minutes de fermeture
+        else {
+            placeTimes.setText("Ouvert jus'qu'à " + closingHours.get(Calendar.HOUR_OF_DAY) + "h" + closingHours.get(Calendar.MINUTE));
+        }
     }
 
     /**
