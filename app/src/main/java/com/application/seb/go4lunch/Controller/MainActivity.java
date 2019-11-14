@@ -66,7 +66,6 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         this.startSignInActivity();
         this.configureToolbar();
         this.configureBottomView();

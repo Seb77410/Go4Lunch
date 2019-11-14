@@ -1,6 +1,5 @@
 package com.application.seb.go4lunch.Utils;
 
-import com.application.seb.go4lunch.Model.GooglePlaceDetailsResponse;
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 
@@ -11,7 +10,6 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
-import retrofit2.http.Path;
 import retrofit2.http.QueryMap;
 
 public interface GooglePlacesService {

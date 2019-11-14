@@ -5,13 +5,16 @@ import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
@@ -40,6 +43,9 @@ public class RestaurantDetails extends AppCompatActivity {
     TextView placeAddress;
     TextView placeTimes;
     RatingBar placeRatingBar;
+    ImageButton placeCallButton;
+    ImageButton placeLikeButton;
+    ImageButton placeWebSiteButton;
     int currentDay;
     Calendar currentDayCldr;
     Calendar openingHours;
@@ -60,6 +66,9 @@ public class RestaurantDetails extends AppCompatActivity {
         placeAddress = findViewById(R.id.restaurant_details_address);
         placeRatingBar = findViewById(R.id.restaurant_details_ratingBar);
         placeTimes = findViewById(R.id.restaurant_details_time);
+        placeCallButton = findViewById(R.id.restaurant_details_call_imageView);
+        placeLikeButton = findViewById(R.id.restaurant_details_like_image);
+        placeWebSiteButton = findViewById(R.id.restaurant_details_website_image);
 
         getActivityArgs();
         onFloatingButtonClick();
@@ -67,19 +76,45 @@ public class RestaurantDetails extends AppCompatActivity {
         placeName.setText(place.getName());
         placeAddress.setText(place.getVicinity());
         setPlaceRatingBar();
+        setPlaceTimes();
 
-        Handler h =new Handler() ;
-        h.postDelayed(new Runnable() {
-            public void run() {
-                setPlaceTimes();
-            }
-
-        }, 2000);
     }
 
     //----------------------------------------------------------------------------------------------
     // Showing restaurant details on UI
     //----------------------------------------------------------------------------------------------
+
+    private void setCallButton(GooglePlaceOpeningHoursResponse value){
+        String phoneNumber = "tel:"+value.getResult().getFormattedPhoneNumber();
+        Log.e("RestaurantDetails", "setCallButton : place phone number : " + phoneNumber);
+
+            Intent intent = new Intent(Intent.ACTION_CALL);
+            intent.setData(Uri.parse(phoneNumber));
+            placeCallButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (phoneNumber != null) { startActivity(intent); }
+                    else {Toast.makeText(getApplicationContext(), "This restaurant have no phone number", Toast.LENGTH_LONG).show();}
+                }
+            });
+    }
+
+
+    private void setWebSiteButton(GooglePlaceOpeningHoursResponse value){
+        String webSite = value.getResult().getWebsite();
+        Log.e("RestaurantDetails", "setWebSiteButton : Website url  : " + webSite);
+
+
+            Intent intent = new Intent(getApplicationContext(), WebViewActivity.class);
+            intent.putExtra("url", webSite);
+            placeWebSiteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (webSite != null){startActivity(intent);}
+                    else{ Toast.makeText(getApplicationContext(), "This restaurant have not website", Toast.LENGTH_LONG).show(); }
+                }
+            });
+    }
 
     /**
      * This method get place rating and show it on UI
@@ -110,10 +145,8 @@ public class RestaurantDetails extends AppCompatActivity {
         else {
             placeImage.setImageResource(R.drawable.no_image);
             Log.e("PlaceDetails.activity", "Photo url : " + "Pas d'url");
-
         }
     }
-
 
     /**
      * This method get arguments from intent activity
@@ -167,7 +200,7 @@ public class RestaurantDetails extends AppCompatActivity {
      */
     private void configurePlaceDetailsRequest(GooglePlacesResponse.Result place, HashMap<String, String> optionsMap){
         optionsMap.put("place_id", place.getPlaceId());
-        optionsMap.put("fields","opening_hours");
+        optionsMap.put("fields","name,website,opening_hours,formatted_phone_number");
         optionsMap.put("key","AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
 
     }
@@ -193,6 +226,8 @@ public class RestaurantDetails extends AppCompatActivity {
                         whenResponseSuccessful(value);
                         // else
                         whenResponseNotSuccessful(value);
+                        setCallButton(value);
+                        setWebSiteButton(value);
                     }
 
                     @Override
@@ -212,18 +247,20 @@ public class RestaurantDetails extends AppCompatActivity {
     private void whenResponseSuccessful(GooglePlaceOpeningHoursResponse value){
 
         if (value.getStatus().equals("OK")) {
-            // We convert open/close String values into Calendar value
-            openingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getOpen().getTime());
-            closingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime());
+            if(value.getResult().getOpeningHours() != null) {
+                // We convert open/close String values into Calendar value
+                openingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getOpen().getTime());
+                closingHours = convertStringTimesIntoDate(value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime());
 
-            // Calculate difference between closing hour
-            currentDayCldr = Calendar.getInstance();
-            int hoursDifference = closingHours.get(Calendar.HOUR_OF_DAY) - currentDayCldr.get(Calendar.HOUR_OF_DAY);
-            int minutesDifferences = closingHours.get(Calendar.MINUTE) - currentDayCldr.get(Calendar.MINUTE);
-            Log.e("RestaurantDetails", "setPlaceTimes : horaires de fermeture : " + hoursDifference+"h"+ minutesDifferences);
+                // Calculate difference between closing hour
+                currentDayCldr = Calendar.getInstance();
+                int hoursDifference = closingHours.get(Calendar.HOUR_OF_DAY) - currentDayCldr.get(Calendar.HOUR_OF_DAY);
+                int minutesDifferences = closingHours.get(Calendar.MINUTE) - currentDayCldr.get(Calendar.MINUTE);
+                Log.e("RestaurantDetails", "setPlaceTimes : horaires de fermeture : " + hoursDifference + "h" + minutesDifferences);
 
-            // And we show restaurant closing hours to UI
-            selectPlaceTimesMessage(hoursDifference, minutesDifferences);
+                // And we show restaurant closing hours to UI
+                selectPlaceTimesMessage(hoursDifference, minutesDifferences);
+            }
         }
     }
 
@@ -321,6 +358,5 @@ public class RestaurantDetails extends AppCompatActivity {
             Log.e("RestaurantDetails", "setPlaceTimes : disable to convert place time into date");
             return null;
         }
-
     }
 }

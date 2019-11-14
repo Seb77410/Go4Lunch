@@ -60,26 +60,7 @@ public class MapFragment extends Fragment implements
     private List<GooglePlacesResponse.Result> placesResponseList;
 
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
 
-        if (marker.getTag() != null) {
-            // Get marker data
-            int markerTag = (int) marker.getTag();
-            Log.d("Marker arguments", "marker list position is : " + markerTag);
-
-            // Set marker place details to string value
-            GooglePlacesResponse.Result placeInfos = placesResponseList.get(markerTag);
-            Gson gson = new Gson();
-            String stringPlaceInfos = gson.toJson(placeInfos);
-
-            //Start RestaurantDetails activity with restaurant details as arguments
-            Intent intent = new Intent(getActivity(), RestaurantDetails.class);
-            intent.putExtra("PLACE_DETAILS" ,stringPlaceInfos);
-            startActivity(intent);
-        }
-        return false;
-    }
 
     //----------------------------------------------------------------------------------------------
     // Places list callback for MainActivity
@@ -192,8 +173,10 @@ public class MapFragment extends Fragment implements
     // Get User location
     // ---------------------------------------------------------------------------------------------
 
+    /**
+     * This method get user Location, add a marker on his location and search restaurants nearby
+     */
     private void updateUserLocation() {
-
         mFusedLocationProviderClient.getLastLocation()
                 .addOnSuccessListener(location -> {
                     // Got last known location. In some rare situations this can be null.
@@ -223,14 +206,18 @@ public class MapFragment extends Fragment implements
                         getNearbyPlaces(latLng);
                     }
                 });
-
-
     }
 
     //----------------------------------------------------------------------------------------------
     // When GPS is activate
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * This method define app comportment when user allow app to get user location
+     * @param requestCode is a request code
+     * @param permissions is the current permission asked to user
+     * @param grantResults is user response to this ask
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -245,6 +232,37 @@ public class MapFragment extends Fragment implements
                 }
             }
         }
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // When user click on Marker
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * This method will start RestaurantDetails activity
+     * and pass place information as intent arguments
+      * @param marker is the marker that user click
+     * @return always false
+     */
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        if (marker.getTag() != null) {
+            // Get marker data
+            int markerTag = (int) marker.getTag();
+            Log.d("Marker arguments", "marker list position is : " + markerTag);
+
+            // Set marker place details to string value
+            GooglePlacesResponse.Result placeInfos = placesResponseList.get(markerTag);
+            Gson gson = new Gson();
+            String stringPlaceInfos = gson.toJson(placeInfos);
+
+            //Start RestaurantDetails activity with restaurant details as arguments
+            Intent intent = new Intent(getActivity(), RestaurantDetails.class);
+            intent.putExtra("PLACE_DETAILS" ,stringPlaceInfos);
+            startActivity(intent);
+        }
+        return false;
     }
 
     //----------------------------------------------------------------------------------------------

@@ -40,7 +40,35 @@ public class GooglePlaceOpeningHoursResponse {
             this.status = status;
         }
 
+
     public class Open {
+
+        @SerializedName("day")
+        @Expose
+        private Integer day;
+        @SerializedName("time")
+        @Expose
+        private String time;
+
+        public Integer getDay() {
+            return day;
+        }
+
+        public void setDay(Integer day) {
+            this.day = day;
+        }
+
+        public String getTime() {
+            return time;
+        }
+
+        public void setTime(String time) {
+            this.time = time;
+        }
+
+    }
+
+    public class Close {
 
         @SerializedName("day")
         @Expose
@@ -134,9 +162,34 @@ public class GooglePlaceOpeningHoursResponse {
 
     public class Result {
 
+        @SerializedName("formatted_phone_number")
+        @Expose
+        private String formattedPhoneNumber;
+        @SerializedName("name")
+        @Expose
+        private String name;
         @SerializedName("opening_hours")
         @Expose
         private OpeningHours openingHours;
+        @SerializedName("website")
+        @Expose
+        private String website;
+
+        public String getFormattedPhoneNumber() {
+            return formattedPhoneNumber;
+        }
+
+        public void setFormattedPhoneNumber(String formattedPhoneNumber) {
+            this.formattedPhoneNumber = formattedPhoneNumber;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
 
         public OpeningHours getOpeningHours() {
             return openingHours;
@@ -146,31 +199,12 @@ public class GooglePlaceOpeningHoursResponse {
             this.openingHours = openingHours;
         }
 
-    }
-
-    public class Close {
-
-        @SerializedName("day")
-        @Expose
-        private Integer day;
-        @SerializedName("time")
-        @Expose
-        private String time;
-
-        public Integer getDay() {
-            return day;
+        public String getWebsite() {
+            return website;
         }
 
-        public void setDay(Integer day) {
-            this.day = day;
-        }
-
-        public String getTime() {
-            return time;
-        }
-
-        public void setTime(String time) {
-            this.time = time;
+        public void setWebsite(String website) {
+            this.website = website;
         }
 
     }
