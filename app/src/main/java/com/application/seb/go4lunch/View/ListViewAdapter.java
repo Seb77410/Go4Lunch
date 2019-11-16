@@ -40,7 +40,8 @@ public class ListViewAdapter extends RecyclerView.Adapter<ListViewViewHolder> {
 
         Log.d("ListViewAdapter ", "Places list : " + placesList.toString());
 
-        return new ListViewViewHolder(view);    }
+        return new ListViewViewHolder(view);
+    }
 
     @Override
     public void onBindViewHolder(@NonNull ListViewViewHolder holder, int position) {

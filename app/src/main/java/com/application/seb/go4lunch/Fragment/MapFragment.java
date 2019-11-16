@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
 import com.application.seb.go4lunch.Controller.RestaurantDetails;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
@@ -34,6 +35,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.gson.Gson;
 
 
@@ -82,7 +87,6 @@ public class MapFragment extends Fragment implements
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(Objects.requireNonNull(getContext()));
-        //mFusedLocationProviderClient.requestLocationUpdates(mFusedLocationProviderClient.getLastLocation(),  , null);
 
         // Configure view
         try {
@@ -133,19 +137,33 @@ public class MapFragment extends Fragment implements
                         Log.e("Places response", String.valueOf(value.getResults().size()));
                         placesResponseList = value.getResults();
 
-
                         if (value.getResults().size() > 0){
                         for (int x = 0; x < value.getResults().size(); x++) {
+
+                            // Add restaurant to DataBase
+                            int finalX = x;
+                            FireStoreRestaurantRequest
+                                    .getRestaurantsCollection()
+                                    .document(value.getResults().get(x).getPlaceId()).get()
+                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            if (!task.getResult().exists()){
+                                                FireStoreRestaurantRequest.createRestaurant(value.getResults().get(finalX).getName(), value.getResults().get(finalX).getPlaceId());
+                                            }
+                                        }
+                                    });
+
+                            // Add marker on every restaurant
                             Double lat = value.getResults().get(x).getGeometry().getLocation().getLat();
                             Double lng = value.getResults().get(x).getGeometry().getLocation().getLng();
                             Log.e("Result location " , "Latitude = " + lat + " ! Longitutde = " + lng);
-
 
                             LatLng latLng = new LatLng(lat, lng);
                             MarkerOptions markerOptions = new MarkerOptions();
                             markerOptions.position(latLng);
                             markerOptions.title(value.getResults().get(x).getName());
-
 
                             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
                             Marker mMarker = mMap.addMarker(markerOptions);

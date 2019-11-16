@@ -12,11 +12,25 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
+import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.R;
+import com.application.seb.go4lunch.Utils.GooglePlacesStream;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
+
+import io.reactivex.observers.DisposableObserver;
 
 
 public class ListViewViewHolder extends RecyclerView.ViewHolder {
@@ -29,6 +43,12 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
     private TextView placeSubscribersNembers;
     private ImageView placeSubsciberImage;
     private RatingBar placeRatingBar;
+    private HashMap<String, String> optionsMap = new HashMap<>();
+    private Calendar currentTime;
+    private String sOpeningMinute;
+    private String sOpeningHour;
+    private String sClosingMinute;
+    private String sClosingHour;
 
 
     public ListViewViewHolder(@NonNull View itemView) {
@@ -47,11 +67,14 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
     public void updateWithPlacesList(GooglePlacesResponse.Result place, LatLng userLocation, RequestManager glide) {
         placeName.setText(place.getName());
 
+        Log.e("ListViewViewHolder", "coordonnées du resatu : " + place.getPlaceId());
+
         setPlaceAddress(place);
         setPlaceDistance(place, userLocation);
         setPlaceRatingBar(place);
         setPlaceImage(place, glide);
-        isOpenOrClose(place);
+        setPlaceTime(place);
+        setPlaceSubscribersNumber(place);
 
     }
 
@@ -59,6 +82,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
         String mPlaceAddress = place.getVicinity();
         mPlaceAddress =  mPlaceAddress.replace(", ", ",\n");
         placeAddress.setText(mPlaceAddress);
+
     }
 
     private void setPlaceDistance(GooglePlacesResponse.Result place, LatLng userLocation){
@@ -86,7 +110,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
             glide.load(photoUrl)
                     .apply(RequestOptions.centerCropTransform())
                     .placeholder(R.drawable.no_image)
-                    //.error(R.drawable.no_image)
+                    .error(R.drawable.no_image)
                     .into(placeImage);
         }
         else {
@@ -94,21 +118,135 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    private void isOpenOrClose(GooglePlacesResponse.Result place){
-        if (place.getOpeningHours() != null) {
-            if (place.getOpeningHours().getOpenNow() != null || place.getOpeningHours().getOpenNow()) {
-                placeTimes.setText("Is open");
-                placeTimes.setTextColor(Color.GREEN);
+    private void configurePlaceDetailsRequest(GooglePlacesResponse.Result place) {
+        optionsMap.put("place_id", place.getPlaceId());
+        optionsMap.put("fields", "name,opening_hours");
+        optionsMap.put("key", "AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
 
-            } else {
-                placeTimes.setText("Is closed");
-                placeTimes.setTextColor(Color.RED);
-            }
-        } else {
-            placeTimes.setText("Horaires inconnus");
-            placeTimes.setTextColor(Color.GRAY);
-            placeTimes.setTypeface(null, Typeface.ITALIC);
+    }
+
+    /**
+     * Define app comportment if PlaceDetails is successful
+     *
+     * @param place is the current GooglePlacesResponse instance
+     */
+    private void setPlaceTime( GooglePlacesResponse.Result place) {
+
+        // If place times are registered
+        if (place.getOpeningHours() != null) {
+            // Start place detail request api
+            configurePlaceDetailsRequest(place);
+            GooglePlacesStream.streamFetchDetailsRequest(optionsMap)
+                    .safeSubscribe(new DisposableObserver<GooglePlaceOpeningHoursResponse>() {
+                        @Override
+                        public void onNext(GooglePlaceOpeningHoursResponse value) {
+                            // Control response value
+                            Gson gson = new Gson();
+                            String mValue = gson.toJson(value);
+                            Log.e("SetPlacesTimes", "La réponse de la requete des details : " + mValue);
+
+                            //configurePlaceTimesValues(value);
+                            selectMessage(value, currentTime, sOpeningHour, sOpeningMinute, sClosingHour, sClosingMinute);
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {}
+
+                        @Override
+                        public void onComplete() {}
+                    });
+
+        // If place Times are not registered
+        }else {placeTimes.setVisibility(View.INVISIBLE);}
+    }
+
+    private void selectMessage(GooglePlaceOpeningHoursResponse value, Calendar currentTime, String sOpeningHour, String sOpeningMinute, String sClosingHour, String sClosingMinute ){
+        placeTimes.setTypeface(null, Typeface.ITALIC);
+        currentTime = Calendar.getInstance();
+        int currentDay = currentTime.get(Calendar.DAY_OF_WEEK);
+        // If place is Open
+        if (value.getResult().getOpeningHours().getOpenNow()) {
+            selectTimesMessageWhenPlaceIsOpen(value, currentDay);
         }
+        // If place is Close
+        else {
+            selectTimesMessageWhenPlaceIsClose(value, currentDay);
+            }
+    }
+
+    private void selectTimesMessageWhenPlaceIsOpen(GooglePlaceOpeningHoursResponse value, int currentDay){
+        // Get closing hours into String values
+        sClosingMinute = value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime().substring(2, 4);
+        sClosingHour = value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime().substring(0, 2);
+        Log.e("ListViewHolder", "String closing hour : " + sClosingHour+"h"+sClosingMinute);
+        placeTimes.setText("Open until " + sClosingHour + "h" + sClosingMinute);
+
+        // Si il ferme dans moins d'une heure
+        // We get current date
+        Log.e("ListViewHolder", "configurePlaceTimesValues : currentDate : " + currentTime.getTime());
+        if(sClosingHour.equals("00")){
+            sClosingHour = "24"; }
+        int hourDiference = Integer.parseInt(sClosingHour) - currentTime.get(Calendar.HOUR_OF_DAY);
+        Log.e("setPlaceTimes ", "La diff des heures = " + hourDiference);
+        if (hourDiference < 1) {
+            placeTimes.setTextColor(Color.RED);
+            placeTimes.setText("Closing soon");
+        }
+    }
+
+    private void selectTimesMessageWhenPlaceIsClose(GooglePlaceOpeningHoursResponse value, int currentDay){
+        // Get opening hours into String values
+        if(currentDay == value.getResult().getOpeningHours().getPeriods().size()){
+            currentDay = 0; }
+        sOpeningMinute = value.getResult().getOpeningHours().getPeriods().get(currentDay).getOpen().getTime().substring(2, 4);
+        sOpeningHour = value.getResult().getOpeningHours().getPeriods().get(currentDay).getOpen().getTime().substring(0, 2);
+        Log.e("ListViewHolder", "String opening hour : " + sOpeningHour+"h"+sOpeningMinute);
+        placeTimes.setText("Close until " + sOpeningHour + "h" + sOpeningMinute);
+    }
+
+    private void setPlaceSubscribersNumber(GooglePlacesResponse.Result place){
+
+        placeSubscribersNembers.setVisibility(View.INVISIBLE);
+        placeSubsciberImage.setVisibility(View.INVISIBLE);
+
+
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+        // Convert current date into string value
+        String currentDate = df.format(calendar.getTime());
+        Log.e("RestaurantDetails", "currentDate = " + currentDate);
+
+        // Execute firestore request
+        Task<DocumentSnapshot> docRef = FirebaseFirestore.getInstance()
+                .collection("restaurants")
+                .document(place.getPlaceId())
+                .collection("subscribers")
+                .document(currentDate)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        // On transform la réponse en objet subscribersCollection
+                        SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+
+                        // Si le document existe
+                        if (subscribersCollection != null) {
+                            if (subscribersCollection.getSubscribersList().size()>0) {
+                                placeSubscribersNembers.setVisibility(View.VISIBLE);
+                                placeSubsciberImage.setVisibility(View.VISIBLE);
+                                placeSubscribersNembers.setText("("+subscribersCollection.getSubscribersList().size()+")");
+                                Log.e("ListViewHolder", "Le restaurant a " + subscribersCollection.getSubscribersList().size()+ " subscribers");
+                            }
+
+                        }else{
+                            placeSubscribersNembers.setVisibility(View.INVISIBLE);
+                            placeSubsciberImage.setVisibility(View.INVISIBLE);
+                            Log.e("ListViewHolder", "Le restaurant n'a pas subscribers");
+                        }
+
+                    }
+                });
+
 
     }
 

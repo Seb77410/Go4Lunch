@@ -26,7 +26,9 @@ public class FireStoreUserRequest {
     public static Task<Void> createUser(String uid, String username) {
         User userToCreate = new User(uid, username);
         return FireStoreUserRequest.getUsersCollection().document(uid).set(userToCreate);
+
     }
+
 
     // --- GET ---
 
@@ -38,10 +40,6 @@ public class FireStoreUserRequest {
 
     public static Task<Void> updateUsername(String username, String uid) {
         return FireStoreUserRequest.getUsersCollection().document(uid).update("username", username);
-    }
-
-    public static Task<Void> updateRestaurant(String uid, String restaurant) {
-        return FireStoreUserRequest.getUsersCollection().document(uid).update("restaurant", restaurant);
     }
 
     // --- DELETE ---

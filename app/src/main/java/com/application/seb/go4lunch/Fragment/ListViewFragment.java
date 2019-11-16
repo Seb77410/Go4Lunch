@@ -69,6 +69,8 @@ public class ListViewFragment extends Fragment {
 
         // Create adapter passing the list of users
         this.adapter = new ListViewAdapter(placesList, userLocation ,Glide.with(this));
+        // For recyclerView views not disappear
+        recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);
         // Attach the adapter to the recycler view to populate items
         this.recyclerView.setAdapter(this.adapter);
         // Set layout manager to position the items

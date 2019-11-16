@@ -18,6 +18,7 @@ import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.View.WorkmatesAdapter;
 import com.bumptech.glide.Glide;
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -27,6 +28,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -48,8 +50,6 @@ public class WorkmatesFragment extends Fragment {
         View fragmentResult = inflater.inflate(R.layout.fragment_workmates, container, false);
         recyclerView = fragmentResult.findViewById(R.id.workmatesFragment_recyclerView);
 
-        //configureRecyclerView(userList);
-        //adapter.notifyDataSetChanged();
         getUsersCollectionList();
 
         return fragmentResult;
@@ -88,16 +88,13 @@ public class WorkmatesFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-
-                            for (QueryDocumentSnapshot document : task.getResult()) {
+                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
                                 //We convert to User object list
                                 Log.e("document :", document.toString());
                                 User user = document.toObject(User.class);
                                 userList.add(user);
                                 Log.e("List d'utilisateurs :", userList.toString());
                             }
-
-
                         } else {
                             Log.e("Error", "Error getting documents: ", task.getException());
                         }
@@ -107,4 +104,5 @@ public class WorkmatesFragment extends Fragment {
                     }
                 });
     }
+
 }

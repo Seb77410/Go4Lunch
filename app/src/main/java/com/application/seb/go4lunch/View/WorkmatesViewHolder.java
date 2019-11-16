@@ -32,8 +32,8 @@ import com.bumptech.glide.request.RequestOptions;
     void updateWithWorkmatesList(User user, RequestManager glide){
 
         // If user selected a restaurant
-        if(user.getRestaurant() != null) {
-            textView.setText(user.getUsername() + "(" + user.getRestaurant() + ")");
+        if(user.getSubscribedRestaurant() != null) {
+            textView.setText(user.getUsername() + "(" + user.getSubscribedRestaurant() + ")");
         }
         else{
             textView.setText(user.getUsername() + " hasn't decided yet");
