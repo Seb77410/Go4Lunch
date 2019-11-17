@@ -28,6 +28,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -42,6 +43,7 @@ import androidx.multidex.MultiDex;
 
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,12 +63,11 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
     GooglePlacesResponse googlePlacesResponse;
     LatLng userLocation;
     DrawerLayout drawerLayout;
+    NavigationView navigationView;
+    RequestManager glide;
     ImageView drawerUserPhoto;
     TextView drawerUserName;
     TextView drawerUserEmail;
-    NavigationView navigationView;
-    RequestManager glide;
-
     // For multidex error
     @Override
     protected void attachBaseContext(Context base) {
@@ -83,9 +84,13 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         this.configureToolbar();
-        this.startSignInActivity();
         this.configureBottomView();
+        configureNavigationView();
+
+        configureDrawerLayout();
+
         // Default view is map fragment
         getSupportFragmentManager()
                 .beginTransaction()
@@ -112,10 +117,10 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
     //----------------------------------------------------------------------------------------------
 
     private void setDrawerUserInfos(){
-        // References
-        drawerUserPhoto = navigationView.findViewById(R.id.nav_header_user_photo);
-        drawerUserName = navigationView.findViewById(R.id.nav_header_user_name);
-        drawerUserEmail = navigationView.findViewById(R.id.nav_header_user_email);
+        ConstraintLayout header = (ConstraintLayout) navigationView.getHeaderView(0);
+        drawerUserPhoto = header.findViewById(R.id.nav_header_user_photo);
+        drawerUserName = header.findViewById(R.id.nav_header_user_name);
+        drawerUserEmail = header.findViewById(R.id.nav_header_user_email);
         // Set user name
         String userName = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getDisplayName();
         drawerUserName.setText(userName);
@@ -132,7 +137,9 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
                 .apply(RequestOptions.circleCropTransform())
                 .placeholder(R.drawable.no_image)
                 .error(R.drawable.no_image)
-                .into((ImageView) navigationView.findViewById(R.id.nav_header_user_photo));
+                .into((ImageView) drawerUserPhoto);
+
+
     }
 
     /**
@@ -147,14 +154,16 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
         drawerLayout.addDrawerListener(toggle);
         // Add animation on drawer menu button when Open/close
         toggle.syncState();
+        setDrawerUserInfos();
     }
 
     /**
      * This method configure the Navigation view
      */
     private void configureNavigationView(){
-        // Glue NavigationView to .xml file
+        // References
         navigationView = findViewById(R.id.activity_main_nav_view);
+        // Glue NavigationView to .xml file
         navigationView.setItemIconTintList(null);
         // Allow user tu click on Menu drawer item button
         navigationView.setNavigationItemSelectedListener(this);
@@ -165,8 +174,6 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         switch(itemId) {
-
-
 
         }
         return true;
@@ -221,96 +228,16 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
                             .commit();
 
                     return true;
-
-
-
             }
             return true;
 
         }
     };
 
-    //----------------------------------------------------------------------------------------------
-    // FireBase Login
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * Launch and configure FireBase Sign-In Activity
-     */
-    private void startSignInActivity(){
-
-        startActivityForResult(
-                AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setTheme(R.style.LoginTheme)
-                        .setAvailableProviders(
-                                Arrays.asList(new AuthUI.IdpConfig.FacebookBuilder().build(),
-                                        new AuthUI.IdpConfig.TwitterBuilder().build(),
-                                        new AuthUI.IdpConfig.EmailBuilder().build(),
-                                        new AuthUI.IdpConfig.GoogleBuilder().build()))
-                        .setIsSmartLockEnabled(false, true)
-                        .setLogo(R.drawable.ic_logo_go4lunch)
-                        .build(),
-                RC_SIGN_IN);
-    }
-
-    /**
-     * Result after sign in : add user data to FireStore database and notify user that sign-in is OK
-     * or not OK with a Toast
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        //Toast.makeText(getApplicationContext(), "result code = " + resultCode, Toast.LENGTH_LONG).show();
-        IdpResponse response = IdpResponse.fromResultIntent(data);
-        if (requestCode == RC_SIGN_IN) {
-            if (resultCode == RESULT_OK) { // SUCCESS
-                Log.d("Utilisateur identifié ","User id = " + Objects.requireNonNull(this.getCurrentUser()).getUid() + ", User name = " + this.getCurrentUser().getDisplayName() + ", User photo url : " + String.valueOf(this.getCurrentUser().getPhotoUrl()));
-                verifyIfUserExist();
-                this.configureDrawerLayout();
-                this.configureNavigationView();
-                setDrawerUserInfos();
-               // setDrawerUserInfos();
-            } else { // ERRORS
-                if (response == null) {
-                    Toast.makeText(getApplicationContext(), "Erreur : authentification annulée", Toast.LENGTH_LONG).show();
-                } else if (Objects.requireNonNull(response.getError()).getErrorCode() ==  ErrorCodes.NO_NETWORK) {
-                    Toast.makeText(getApplicationContext(), "Erreur : pas d'internet ", Toast.LENGTH_LONG).show();
-                } else if (Objects.requireNonNull(response.getError()).getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
-                    Toast.makeText(getApplicationContext(), "Erreur inconnue", Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-
-    private void verifyIfUserExist(){
-        FireStoreUserRequest
-                .getUsersCollection()
-                .document(Objects.requireNonNull(getCurrentUser()).getUid())
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        if(!documentSnapshot.exists()){
-                            // We save User infos into FireStore database
-                            if (getCurrentUser().getPhotoUrl() != null) {
-                                FireStoreUserRequest.createUser(Objects.requireNonNull(getCurrentUser()).getUid(), getCurrentUser().getDisplayName(), Objects.requireNonNull(getCurrentUser().getPhotoUrl()).toString());
-                            }else{
-                                FireStoreUserRequest.createUser(Objects.requireNonNull(getCurrentUser()).getUid(), getCurrentUser().getDisplayName());
-                            }
-                        }
-                    }
-                })
-                ;
-    }
 
     @Nullable
     protected FirebaseUser getCurrentUser(){ return FirebaseAuth.getInstance().getCurrentUser(); }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
 
     //----------------------------------------------------------------------------------------------
     // Get nearby places list from MapFragment

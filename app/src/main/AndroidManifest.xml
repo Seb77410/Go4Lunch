@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Controller.SignInActivity"></activity>
+        <activity android:name=".Controller.MainActivity"/>
         <activity android:name=".Controller.WebViewActivity" />
         <activity android:name=".Controller.RestaurantDetails" />
 
@@ -29,7 +29,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/map_key" />
 
-        <activity android:name=".Controller.MainActivity">
+        <activity android:name=".Controller.SignInActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
