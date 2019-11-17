@@ -22,8 +22,9 @@
     <!-- Error message -->
     <string name="fireStore_request_error">Erreur lors de la requête FireStore</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- For drawer menu -->
+    <string name="navigation_drawer_open">Navigation drawer open</string>
+    <string name="navigation_drawer_close">Navigation drawer close</string>
 
 
 </resources>

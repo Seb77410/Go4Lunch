@@ -32,6 +32,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -62,9 +63,10 @@ public class RestaurantDetails extends AppCompatActivity {
     Calendar calendar;
     SimpleDateFormat df;
     String currentDate;
-    Boolean userSubscribeThisPlace = false;
+    Boolean userAlreadySubscribeOnePlace = false;
     ArrayList<String> placeLikeList = new ArrayList<>();
-    Restaurant restaurant;
+
+
 
     //----------------------------------------------------------------------------------------------
     // OnCreate
@@ -90,11 +92,10 @@ public class RestaurantDetails extends AppCompatActivity {
         currentDate = df.format(calendar.getTime());
         Log.e("RestaurantDetails", "currentDate = " + currentDate);
 
-        //startSubscribersRecyclerView();
         getActivityArgs();
         getPlaceLikedList();
-        getSubscribersList();
-        onFloatingButtonClick();
+        getSubscribersListByRestaurant();
+        getRestaurantList();
         setPlaceImage();
         placeName.setText(place.getName());
         placeAddress.setText(place.getVicinity());
@@ -105,51 +106,7 @@ public class RestaurantDetails extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     // Showing restaurant details on UI
     //----------------------------------------------------------------------------------------------
-    /**
-     * This method define app comportment when user click on Floating button
-     */
-    private void onFloatingButtonClick() {
 
-        // Si l'utilisateur s'est deja inscris à ce restau
-        if(userSubscribeThisPlace){
-            // On modifie le bouton
-            subscribeButton.setClickable(false);
-            subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
-            subscribeButton.setImageResource(R.drawable.green_check);
-        }
-        // Si l'utilisateur ne s'est pas encore inscrit à ce restau
-        else {
-            subscribeButton.setClickable(true);
-            subscribeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    // Modify floating button view
-                    Log.e("RestaurantDetails", "User just click on Floating button");
-                    subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
-                    subscribeButton.setImageResource(R.drawable.green_check);
-
-                    // Si l'utilisateur ne fais pas partie de ceux qui se sont inscrit à ce restau
-                    if (!subscribers.contains(FirebaseAuth.getInstance().getUid())) {
-                        // Ajoute l'utilisateur à la liste des subscribers du restau
-                        subscribers.add(FirebaseAuth.getInstance().getUid());
-                        HashMap<String, ArrayList<String>> data = new HashMap<>();
-                        data.put("subscribersList", subscribers);
-                        FireStoreRestaurantRequest
-                                .getRestaurantSubscribersCollection(place.getPlaceId())
-                                .document(currentDate)
-                                .set(data, SetOptions.merge())
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        startSubscribersRecyclerView();
-                                    }
-                                });
-                    }
-                }
-            });
-        }
-    }
 
     private void setPlaceLikeButton() {
         placeLikeButton.setOnClickListener(new View.OnClickListener() {
@@ -342,7 +299,7 @@ public class RestaurantDetails extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     // Get place subscribers list
     //----------------------------------------------------------------------------------------------
-    private void getSubscribersList(){
+    private void getSubscribersListByRestaurant(){
 
         // Execute firestore request
         FirebaseFirestore.getInstance()
@@ -362,9 +319,8 @@ public class RestaurantDetails extends AppCompatActivity {
                             // Et que la taille de son tableau de subscribers est superieur à 0
                             if (subscribersCollection.getSubscribersList().size() > 0) {
                                 subscribers = subscribersCollection.getSubscribersList();
-                                startSubscribersRecyclerView();
                                 Toast.makeText(getApplicationContext(), "Les subscribers du 15/10/2019 sont recup", Toast.LENGTH_LONG).show();
-                                verifyIfUserAsAlreadySubscribeThisPlace();
+                                startSubscribersRecyclerView();
                             }else{
                                 // Et que sa taille est inférieure à 0
                                 Toast.makeText(getApplicationContext(), "La liste des subscribers est vide", Toast.LENGTH_LONG).show();
@@ -376,11 +332,13 @@ public class RestaurantDetails extends AppCompatActivity {
                         }
 
                     }
-
                 });
     }
 
+
+
     private void getPlaceLikedList(){
+
         FireStoreRestaurantRequest
                 .getRestaurantsCollection()
                 .document(place.getPlaceId())
@@ -391,7 +349,7 @@ public class RestaurantDetails extends AppCompatActivity {
 
                          if(task.isSuccessful()){
                              Log.e("Error", "NO ERROR getting documents: ", task.getException());
-                             restaurant = Objects.requireNonNull(task.getResult()).toObject(Restaurant.class);
+                             Restaurant restaurant = Objects.requireNonNull(task.getResult()).toObject(Restaurant.class);
                              if (restaurant != null) {
                                  if (restaurant.getUserLikeList() != null){
                                      if (restaurant.getUserLikeList().size() > 0){
@@ -414,24 +372,6 @@ public class RestaurantDetails extends AppCompatActivity {
                  });
     }
 
-
-    //----------------------------------------------------------------------------------------------
-    // Showing place subscribers list into RecyclerView
-    //----------------------------------------------------------------------------------------------
-
-    private void verifyIfUserAsAlreadySubscribeThisPlace(){
-        if(!subscribers.contains(FirebaseAuth.getInstance().getUid())) {
-            userSubscribeThisPlace = false;
-            Toast.makeText(getApplicationContext(),"L'utilisateur ne fait pas partie des subscribers", Toast.LENGTH_LONG).show();
-        }
-        else{
-            userSubscribeThisPlace = true;
-            Toast.makeText(getApplicationContext(),"L'utilisateur fait partie des subscribers", Toast.LENGTH_LONG).show();
-        }
-        onFloatingButtonClick();
-    }
-
-
     //----------------------------------------------------------------------------------------------
     // Start SubscribersFragment
     //----------------------------------------------------------------------------------------------
@@ -440,6 +380,109 @@ public class RestaurantDetails extends AppCompatActivity {
                 .beginTransaction()
                 .replace(R.id.restaurant_details_frameLayout, new SubscribersFragment(subscribers))
                 .commit();
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Configure FloatingButton
+    //----------------------------------------------------------------------------------------------
+
+    private void getRestaurantList(){
+
+        // On recup la liste de tous les restaus
+        FireStoreRestaurantRequest
+                .getRestaurantsCollection()
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        Log.e("RestaurantDetails", "J'ai recup tous les restau");
+
+                        //pour chaque restau on recup sa liste de subscribers
+                        for (DocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())){
+                            Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
+                            Log.e("RestaurantDetails", "Je suis dans le restau : " + restaurant.getName());
+
+                            getRestaurantSubscribersList(restaurant);
+                            // When every restaurants subscribers list are check
+                            // We configure the FloatingButton
+                            onFloatingButtonClick();
+                        }
+
+                    }
+                });
+    }
+
+    private void getRestaurantSubscribersList(Restaurant restaurant){
+        FireStoreRestaurantRequest
+                .getRestaurantSubscribersCollection(restaurant.getId())
+                .document(currentDate)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        Log.e("RestaurantDetails", "Je suis dans la subscriberList de : " + restaurant.getName());
+
+                        // On verifi si notre nom apparait dans cette liste
+                        SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+                        verifyIfUserIsInSubscribersCollection(subscribersCollection, restaurant);
+
+
+                    }
+                });
+    }
+
+    private void verifyIfUserIsInSubscribersCollection(SubscribersCollection subscribersCollection, Restaurant restaurant){
+        if (subscribersCollection != null && subscribersCollection.getSubscribersList().contains(FirebaseAuth.getInstance().getUid())) {
+            userAlreadySubscribeOnePlace = true;
+            Log.e("RestaurantDetails", "L'utilisateur a souscris a ce restau : " + restaurant.getName());
+        }
+    }
+
+    /**
+     * This method define app comportment when user click on Floating button
+     */
+    private void onFloatingButtonClick() {
+
+        // Si l'utilisateur s'est deja inscris à ce restau
+        if(userAlreadySubscribeOnePlace = true){
+            // On modifie le bouton
+            subscribeButton.setClickable(false);
+            subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
+            subscribeButton.setImageResource(R.drawable.green_check);
+        }
+        // Si l'utilisateur ne s'est pas encore inscrit à ce restau
+        else {
+            subscribeButton.setClickable(true);
+            subscribeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    // Modify floating button view
+                    Log.e("RestaurantDetails", "User just click on Floating button");
+                    subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
+                    subscribeButton.setImageResource(R.drawable.green_check);
+
+                    // Si l'utilisateur ne fais pas partie de ceux qui se sont inscrit à ce restau
+                    if (!subscribers.contains(FirebaseAuth.getInstance().getUid())) {
+
+                        // Ajoute l'utilisateur à la liste des subscribers du restau
+                        subscribers.add(FirebaseAuth.getInstance().getUid());
+                        HashMap<String, ArrayList<String>> data = new HashMap<>();
+                        data.put("subscribersList", subscribers);
+                        FireStoreRestaurantRequest
+                                .getRestaurantSubscribersCollection(place.getPlaceId())
+                                .document(currentDate)
+                                .set(data, SetOptions.merge())
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        startSubscribersRecyclerView();
+                                    }
+                                });
+                    }
+                }
+            });
+        }
     }
 }
 

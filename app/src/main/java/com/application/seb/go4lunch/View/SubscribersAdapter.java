@@ -23,6 +23,7 @@ public class SubscribersAdapter extends RecyclerView.Adapter<SubscribersViewHold
         this.subscribersList = subscribersList;
     }
 
+
     @NonNull
     @Override
     public SubscribersViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

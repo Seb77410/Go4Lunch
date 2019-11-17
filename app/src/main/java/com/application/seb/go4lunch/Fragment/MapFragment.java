@@ -36,7 +36,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.gson.Gson;
@@ -54,18 +53,17 @@ public class MapFragment extends Fragment implements
         ,GoogleMap.OnMarkerClickListener
         {
 
+    // Constructor
     public MapFragment() {
         // Required empty public constructor
     }
 
+    // For data
     private GoogleMap mMap;
     private Marker currentUserLocationMarker;
     private Disposable disposable;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private List<GooglePlacesResponse.Result> placesResponseList;
-
-
-
 
     //----------------------------------------------------------------------------------------------
     // Places list callback for MainActivity
@@ -120,13 +118,23 @@ public class MapFragment extends Fragment implements
         }
     }
 
-    private void getNearbyPlaces(LatLng lastLocation){
-        HashMap<String, String> optionsMap = new HashMap<>();
+
+    //----------------------------------------------------------------------------------------------
+    // For Restaurants Location
+    //----------------------------------------------------------------------------------------------
+
+    private void setNearbyPlaceRequestOptions(HashMap<String, String> optionsMap, LatLng lastLocation){
         optionsMap.put("location", lastLocation.latitude + "," + lastLocation.longitude);
         //optionsMap.put("type", "food,restaurant");
-        optionsMap.put("keyword", "restaurant,pizza"); //TODO : Bar
+        optionsMap.put("keyword", "restaurant,pizza");
         optionsMap.put("rankby", "distance");
         optionsMap.put("key", "AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
+    }
+
+    private void getNearbyPlaces(LatLng lastLocation){
+
+        HashMap<String, String> optionsMap = new HashMap<>();
+        setNearbyPlaceRequestOptions(optionsMap, lastLocation);
 
         disposable = GooglePlacesStream.streamFetchQueryRequest(optionsMap)
                 .subscribeWith(new DisposableObserver<GooglePlacesResponse>(){
@@ -141,52 +149,51 @@ public class MapFragment extends Fragment implements
                         for (int x = 0; x < value.getResults().size(); x++) {
 
                             // Add restaurant to DataBase
-                            int finalX = x;
-                            FireStoreRestaurantRequest
-                                    .getRestaurantsCollection()
-                                    .document(value.getResults().get(x).getPlaceId()).get()
-                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-
-                                        @Override
-                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                            if (!task.getResult().exists()){
-                                                FireStoreRestaurantRequest.createRestaurant(value.getResults().get(finalX).getName(), value.getResults().get(finalX).getPlaceId());
-                                            }
-                                        }
-                                    });
-
+                            addRestaurantToDataBase(x, value);
                             // Add marker on every restaurant
-                            Double lat = value.getResults().get(x).getGeometry().getLocation().getLat();
-                            Double lng = value.getResults().get(x).getGeometry().getLocation().getLng();
-                            Log.e("Result location " , "Latitude = " + lat + " ! Longitutde = " + lng);
-
-                            LatLng latLng = new LatLng(lat, lng);
-                            MarkerOptions markerOptions = new MarkerOptions();
-                            markerOptions.position(latLng);
-                            markerOptions.title(value.getResults().get(x).getName());
-
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
-                            Marker mMarker = mMap.addMarker(markerOptions);
-                            mMarker.setTag(x);
-
+                            addMarkerOnRestaurant(x, value);
                             // Send GooglePlacesResponse to MainActivity
                             ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetGooglePlacesResponse(value);
                             }
                         }
                     }
-
                     @Override
-                    public void onError(Throwable e) {
-
-                    }
-
+                    public void onError(Throwable e) {}
                     @Override
-                    public void onComplete() {
+                    public void onComplete() {}
+                });
+    }
 
+
+
+    private void addRestaurantToDataBase(int x,GooglePlacesResponse value ){
+        FireStoreRestaurantRequest
+                .getRestaurantsCollection()
+                .document(value.getResults().get(x).getPlaceId()).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (!task.getResult().exists()){
+                            FireStoreRestaurantRequest.createRestaurant(value.getResults().get(x).getName(), value.getResults().get(x).getPlaceId());
+                        }
                     }
                 });
     }
 
+    private void addMarkerOnRestaurant(int x,GooglePlacesResponse value ){
+        Double lat = value.getResults().get(x).getGeometry().getLocation().getLat();
+        Double lng = value.getResults().get(x).getGeometry().getLocation().getLng();
+        Log.e("Result location " , "Latitude = " + lat + " ! Longitutde = " + lng);
+
+        LatLng latLng = new LatLng(lat, lng);
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title(value.getResults().get(x).getName());
+
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
+        Marker mMarker = mMap.addMarker(markerOptions);
+        mMarker.setTag(x);
+    }
     //----------------------------------------------------------------------------------------------
     // Get User location
     // ---------------------------------------------------------------------------------------------

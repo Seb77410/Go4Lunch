@@ -18,4 +18,7 @@ public class Constants {
     // Google places max rating
     public static int GOOGL_MAX_RATING = 5;
 
+    public static String  NAV_OPEN = "nav_open";
+    public static String NAV_CLOSE = "nav_close";
+
 }

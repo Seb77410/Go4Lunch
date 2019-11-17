@@ -13,12 +13,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
+import com.application.seb.go4lunch.Model.Restaurant;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.View.WorkmatesAdapter;
 import com.bumptech.glide.Glide;
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -36,8 +37,8 @@ import java.util.Objects;
 public class WorkmatesFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private List<User> userList = new ArrayList<>();
     private WorkmatesAdapter adapter;
+    private ArrayList<Restaurant> restaurantList = new ArrayList<>();
 
     public WorkmatesFragment() {
         // Required empty public constructor
@@ -50,15 +51,15 @@ public class WorkmatesFragment extends Fragment {
         View fragmentResult = inflater.inflate(R.layout.fragment_workmates, container, false);
         recyclerView = fragmentResult.findViewById(R.id.workmatesFragment_recyclerView);
 
-        getUsersCollectionList();
+        getRestaurantCollectionList();
 
         return fragmentResult;
     }
 
 
-    // -----------------
+    // ---------------------------------------------------------------------------------------------
     // CONFIGURATION
-    // -----------------
+    // ---------------------------------------------------------------------------------------------
 
     // Configure RecyclerView, Adapter, LayoutManager & glue it together
     private void configureRecyclerView(List<User> userList) {
@@ -69,12 +70,16 @@ public class WorkmatesFragment extends Fragment {
         //Log.e("User list name 2: ", userList.get(1).getUsername());
 
         // Create adapter passing the list of users
-        this.adapter = new WorkmatesAdapter(userList, Glide.with(this));
+        this.adapter = new WorkmatesAdapter(restaurantList ,userList, Glide.with(this));
         // Attach the adapter to the recycler view to populate items
         this.recyclerView.setAdapter(this.adapter);
         // Set layout manager to position the items
         this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
+
+    // ---------------------------------------------------------------------------------------------
+    // FireStore
+    // ---------------------------------------------------------------------------------------------
 
     // Get user collection list form FireStore
     private void getUsersCollectionList(){
@@ -101,6 +106,29 @@ public class WorkmatesFragment extends Fragment {
                         // And commit recycler view
                         configureRecyclerView(userList);
                         adapter.notifyDataSetChanged();
+                    }
+                });
+    }
+
+    // Get restaurant collection list from FireStore
+    private void getRestaurantCollectionList(){
+
+        FireStoreRestaurantRequest
+                .getRestaurantsCollection()
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())){
+                                Log.e("Restaurant :", Objects.requireNonNull(task.getResult()).toString());
+                                Restaurant restaurant = document.toObject(Restaurant.class);
+                                restaurantList.add(restaurant);
+                                Log.e("Liste de restaurant :", restaurantList.toString());
+                                getUsersCollectionList();
+                            }
+
+                        }
                     }
                 });
     }

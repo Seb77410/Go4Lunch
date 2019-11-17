@@ -12,23 +12,28 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
+import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.GooglePlacesStream;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Objects;
 
 import io.reactivex.observers.DisposableObserver;
 
@@ -44,7 +49,6 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
     private ImageView placeSubsciberImage;
     private RatingBar placeRatingBar;
     private HashMap<String, String> optionsMap = new HashMap<>();
-    private Calendar currentTime;
     private String sOpeningMinute;
     private String sOpeningHour;
     private String sClosingMinute;
@@ -74,7 +78,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
         setPlaceRatingBar(place);
         setPlaceImage(place, glide);
         setPlaceTime(place);
-        setPlaceSubscribersNumber(place);
+        setPlaceSubscribersNumberWithRestaurant(place);
 
     }
 
@@ -146,7 +150,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
                             Log.e("SetPlacesTimes", "La réponse de la requete des details : " + mValue);
 
                             //configurePlaceTimesValues(value);
-                            selectMessage(value, currentTime, sOpeningHour, sOpeningMinute, sClosingHour, sClosingMinute);
+                            selectMessage(value, sOpeningHour, sOpeningMinute, sClosingHour, sClosingMinute);
                         }
 
                         @Override
@@ -160,13 +164,13 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
         }else {placeTimes.setVisibility(View.INVISIBLE);}
     }
 
-    private void selectMessage(GooglePlaceOpeningHoursResponse value, Calendar currentTime, String sOpeningHour, String sOpeningMinute, String sClosingHour, String sClosingMinute ){
+    private void selectMessage(GooglePlaceOpeningHoursResponse value, String sOpeningHour, String sOpeningMinute, String sClosingHour, String sClosingMinute ){
         placeTimes.setTypeface(null, Typeface.ITALIC);
-        currentTime = Calendar.getInstance();
+        Calendar currentTime = Calendar.getInstance();
         int currentDay = currentTime.get(Calendar.DAY_OF_WEEK);
         // If place is Open
         if (value.getResult().getOpeningHours().getOpenNow()) {
-            selectTimesMessageWhenPlaceIsOpen(value, currentDay);
+            selectTimesMessageWhenPlaceIsOpen(value, currentDay, currentTime);
         }
         // If place is Close
         else {
@@ -174,7 +178,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
             }
     }
 
-    private void selectTimesMessageWhenPlaceIsOpen(GooglePlaceOpeningHoursResponse value, int currentDay){
+    private void selectTimesMessageWhenPlaceIsOpen(GooglePlaceOpeningHoursResponse value, int currentDay, Calendar currentTime){
         // Get closing hours into String values
         sClosingMinute = value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime().substring(2, 4);
         sClosingHour = value.getResult().getOpeningHours().getPeriods().get(currentDay).getClose().getTime().substring(0, 2);
@@ -204,11 +208,7 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
         placeTimes.setText("Close until " + sOpeningHour + "h" + sOpeningMinute);
     }
 
-    private void setPlaceSubscribersNumber(GooglePlacesResponse.Result place){
-
-        placeSubscribersNembers.setVisibility(View.INVISIBLE);
-        placeSubsciberImage.setVisibility(View.INVISIBLE);
-
+    private void setPlaceSubscribersNumberWithRestaurant(GooglePlacesResponse.Result place){
 
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
@@ -232,24 +232,18 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
                         // Si le document existe
                         if (subscribersCollection != null) {
                             if (subscribersCollection.getSubscribersList().size()>0) {
-                                placeSubscribersNembers.setVisibility(View.VISIBLE);
-                                placeSubsciberImage.setVisibility(View.VISIBLE);
+                                placeSubsciberImage.setImageResource(R.drawable.ic_person_outline_black_24dp);
                                 placeSubscribersNembers.setText("("+subscribersCollection.getSubscribersList().size()+")");
                                 Log.e("ListViewHolder", "Le restaurant a " + subscribersCollection.getSubscribersList().size()+ " subscribers");
                             }
 
                         }else{
-                            placeSubscribersNembers.setVisibility(View.INVISIBLE);
-                            placeSubsciberImage.setVisibility(View.INVISIBLE);
                             Log.e("ListViewHolder", "Le restaurant n'a pas subscribers");
                         }
 
                     }
                 });
-
-
     }
-
 }
 
 

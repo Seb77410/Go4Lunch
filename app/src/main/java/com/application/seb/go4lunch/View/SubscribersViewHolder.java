@@ -17,10 +17,10 @@ import com.google.firebase.firestore.DocumentSnapshot;
 
 class SubscribersViewHolder  extends RecyclerView.ViewHolder {
 
-    ImageView subscribersPhoto;
-    TextView subscribersName;
+    private ImageView subscribersPhoto;
+    private TextView subscribersName;
 
-    public SubscribersViewHolder(@NonNull View itemView) {
+    SubscribersViewHolder(@NonNull View itemView) {
         super(itemView);
 
         subscribersPhoto = itemView.findViewById(R.id.subscribers_imageView);
@@ -28,9 +28,9 @@ class SubscribersViewHolder  extends RecyclerView.ViewHolder {
 
     }
 
-    public void updateWithSubscribersList(String subscriberId, RequestManager glide){
+    void updateWithSubscribersList(String subscriberId, RequestManager glide){
 
-        // On recup l'utilisateur qui a l'ip passé en paramétres
+        // On recup l'utilisateur qui a l'id passé en paramétres
         FireStoreUserRequest.getUser(subscriberId).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
@@ -57,6 +57,7 @@ class SubscribersViewHolder  extends RecyclerView.ViewHolder {
         });
 
     }
+
 
 
 }
