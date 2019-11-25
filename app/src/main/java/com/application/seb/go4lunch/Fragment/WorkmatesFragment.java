@@ -14,16 +14,19 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
+import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.Model.Restaurant;
+import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
-import com.application.seb.go4lunch.Utils.Constants;
+import com.application.seb.go4lunch.Utils.Helper;
 import com.application.seb.go4lunch.View.WorkmatesAdapter;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentSnapshot;
 
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -39,6 +42,8 @@ public class WorkmatesFragment extends Fragment {
     private RecyclerView recyclerView;
     private WorkmatesAdapter adapter;
     private ArrayList<Restaurant> restaurantList = new ArrayList<>();
+    private ArrayList<User> UsersList = new ArrayList<>();
+    private ArrayList<SubscribersCollection> subscribersCollections = new ArrayList<>();
 
     public WorkmatesFragment() {
         // Required empty public constructor
@@ -51,8 +56,7 @@ public class WorkmatesFragment extends Fragment {
         View fragmentResult = inflater.inflate(R.layout.fragment_workmates, container, false);
         recyclerView = fragmentResult.findViewById(R.id.workmatesFragment_recyclerView);
 
-        getRestaurantCollectionList();
-
+        getFormatUsersList();
         return fragmentResult;
     }
 
@@ -70,7 +74,7 @@ public class WorkmatesFragment extends Fragment {
         //Log.e("User list name 2: ", userList.get(1).getUsername());
 
         // Create adapter passing the list of users
-        this.adapter = new WorkmatesAdapter(restaurantList ,userList, Glide.with(this));
+        this.adapter = new WorkmatesAdapter(userList,Glide.with(this));
         // Attach the adapter to the recycler view to populate items
         this.recyclerView.setAdapter(this.adapter);
         // Set layout manager to position the items
@@ -81,56 +85,27 @@ public class WorkmatesFragment extends Fragment {
     // FireStore
     // ---------------------------------------------------------------------------------------------
 
-    // Get user collection list form FireStore
-    private void getUsersCollectionList(){
-        final List<User> userList = new ArrayList<>();
-        FirebaseFirestore
-                .getInstance()
-                .collection(Constants.USER_COLLECTION_NAME)
+    private void getFormatUsersList() {
+
+        FireStoreUserRequest
+                .getUsersCollection()
+                .orderBy("alreadySubscribeRestaurant", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    // When we get the list
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                                //We convert to User object list
-                                Log.e("document :", document.toString());
-                                User user = document.toObject(User.class);
-                                userList.add(user);
-                                Log.e("List d'utilisateurs :", userList.toString());
-                            }
-                        } else {
-                            Log.e("Error", "Error getting documents: ", task.getException());
+
+                        for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                            User user = document.toObject(User.class);
+                            UsersList.add(user);
                         }
-                        // And commit recycler view
-                        configureRecyclerView(userList);
+                        Log.e("La liste d'users", "est égale a " + UsersList.size());
+
+                        configureRecyclerView(UsersList);
                         adapter.notifyDataSetChanged();
                     }
                 });
-    }
 
-    // Get restaurant collection list from FireStore
-    private void getRestaurantCollectionList(){
-
-        FireStoreRestaurantRequest
-                .getRestaurantsCollection()
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())){
-                                Log.e("Restaurant :", Objects.requireNonNull(task.getResult()).toString());
-                                Restaurant restaurant = document.toObject(Restaurant.class);
-                                restaurantList.add(restaurant);
-                                Log.e("Liste de restaurant :", restaurantList.toString());
-                                getUsersCollectionList();
-                            }
-
-                        }
-                    }
-                });
     }
 
 }

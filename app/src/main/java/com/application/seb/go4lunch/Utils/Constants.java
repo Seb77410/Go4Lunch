@@ -21,4 +21,8 @@ public class Constants {
     public static String  NAV_OPEN = "nav_open";
     public static String NAV_CLOSE = "nav_close";
 
+    // For place Autocomplete
+    public static int AUTOCOMPLETE_REQUEST_CODE = 1;
+
+
 }

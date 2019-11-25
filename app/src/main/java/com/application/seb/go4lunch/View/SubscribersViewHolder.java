@@ -46,11 +46,20 @@ class SubscribersViewHolder  extends RecyclerView.ViewHolder {
                     // On modifie l'affichage du nom
                     subscribersName.setText(name + " is joining!");
                     // On affiche sa photo
-                    glide.load(photoUrl)
-                            .apply(RequestOptions.circleCropTransform())
-                            .placeholder(R.drawable.no_image)
-                            .error(R.drawable.no_image)
-                            .into(subscribersPhoto);
+                    if(photoUrl != null) {
+                        glide.load(photoUrl)
+                                .apply(RequestOptions.circleCropTransform())
+                                .placeholder(R.drawable.no_image)
+                                .error(R.drawable.no_image)
+                                .into(subscribersPhoto);
+                    }
+                    else{
+                        glide.load(R.drawable.no_image)
+                                .apply(RequestOptions.circleCropTransform())
+                                .placeholder(R.drawable.no_image)
+                                .error(R.drawable.no_image)
+                                .into(subscribersPhoto);
+                    }
                 }
             }
 

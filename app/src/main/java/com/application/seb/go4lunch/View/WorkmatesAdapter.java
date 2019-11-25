@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.application.seb.go4lunch.Model.Restaurant;
+import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
 import com.bumptech.glide.RequestManager;
@@ -22,13 +23,11 @@ public class WorkmatesAdapter extends RecyclerView.Adapter<WorkmatesViewHolder> 
     // Values
     private List<User> userList;
     private RequestManager glide;
-    private ArrayList<Restaurant> restaurantList;
 
     // Constructor
-    public WorkmatesAdapter(ArrayList<Restaurant> restaurantList, List<User> userList, RequestManager glide) {
+    public WorkmatesAdapter(List<User> userList, RequestManager glide) {
         this.userList = userList;
         this.glide = glide;
-        this.restaurantList = restaurantList;
     }
 
     @NonNull
@@ -48,7 +47,7 @@ public class WorkmatesAdapter extends RecyclerView.Adapter<WorkmatesViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull WorkmatesViewHolder holder, int position) {
         User user = userList.get(position);
-        holder.updateWithWorkmatesList(restaurantList ,user, glide);
+        holder.updateWithWorkmatesList(user,glide);
     }
 
     @Override

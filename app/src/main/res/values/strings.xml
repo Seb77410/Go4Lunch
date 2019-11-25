@@ -26,5 +26,13 @@
     <string name="navigation_drawer_open">Navigation drawer open</string>
     <string name="navigation_drawer_close">Navigation drawer close</string>
 
+    <!-- Map api key -->
+    <string name="map_key" translatable="false">
+        AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc
+    </string>
+    <string name="PLACE_API_KEY" translatable="false">
+        AIzaSyBoSMw5DTASuHRDEmR_Kwwa43u97fIMXts
+    </string>
+
 
 </resources>

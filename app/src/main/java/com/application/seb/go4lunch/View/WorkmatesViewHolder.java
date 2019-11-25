@@ -16,23 +16,27 @@ import com.application.seb.go4lunch.Model.Restaurant;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
+import com.application.seb.go4lunch.Utils.Helper;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Objects;
-
 
 class WorkmatesViewHolder extends RecyclerView.ViewHolder {
 
     private TextView textView;
     private ImageView imageView;
     private View itemView;
+    private ArrayList<Restaurant> restaurantList;
+    private SubscribersCollection subscribersCollection;
+    String subscribRestaurant;
 
 
     WorkmatesViewHolder(@NonNull View itemView) {
@@ -42,53 +46,56 @@ class WorkmatesViewHolder extends RecyclerView.ViewHolder {
         imageView = itemView.findViewById(R.id.workmatesFragment_recyclerView_userImage);
     }
 
-    void updateWithWorkmatesList(ArrayList<Restaurant> restaurantList, User user, RequestManager glide){
-
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-        // Convert current date into string value
-        String currentDate = df.format(calendar.getTime());
-        Log.e("RestaurantDetails", "currentDate = " + currentDate);
-
-        // pour chaque restaurant
-        for (int x = 0; x <= restaurantList.size()-1; x++){
-            // On prend la liste des subscribers via FireStore
-            String restaurantId = restaurantList.get(x).getId();
-            String restaurantName = restaurantList.get(x).getName();
-            FireStoreRestaurantRequest
-                    .getRestaurantSubscribersCollection(restaurantId)
-                    .document(currentDate)
-                    .get()
-                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()){
-                                SubscribersCollection subscribersCollection = Objects.requireNonNull(task.getResult()).toObject(SubscribersCollection.class);
-                                if (subscribersCollection != null) {
-                                    ArrayList<String> subscriberList = subscribersCollection.getSubscribersList();
-                                    setTextView(user, subscriberList, restaurantName);
-                                }
-                            }else {
-                                Log.e("WorkmatesViewHolder", "FireStore restaurant request ERROR : " + task.getException());
-                            }
-                        }
-                    });
-        }
+    void updateWithWorkmatesList(User user,RequestManager glide){
+        getRestaurantCollectionList(user);
         setImageView(user, glide);
     }
 
-    private void setTextView(User user, ArrayList<String> subscriberList, String restaurantName){
 
-        if (subscriberList.contains(user.getUid())){
-            textView.setText(user.getUsername() +" is eating ("+ restaurantName + ")");
-            textView.setTypeface(null, Typeface.NORMAL);
-            textView.setTextColor(Color.BLACK);
-        } else{
-            textView.setText(user.getUsername() + " hasn't decided yet");
-            textView.setTextColor(ContextCompat.getColor( itemView.getContext(),R.color.grey));
-            textView.setTypeface(null, Typeface.ITALIC);
+    // Get restaurant collection list from FireStore
+    private void getRestaurantCollectionList(User user) {
+        textView.setText(user.getUsername() + " hasn't decided yet");
+        textView.setTextColor(ContextCompat.getColor( itemView.getContext(),R.color.grey));
+        textView.setTypeface(null, Typeface.ITALIC);
 
-        }
+        FireStoreRestaurantRequest
+                .getRestaurantsCollection()
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                                Restaurant restaurant = document.toObject(Restaurant.class);
+                                getSubscriberList(user, restaurant);
+                            }
+                        }
+                    }
+                });
+    }
+
+
+    private void getSubscriberList(User user, Restaurant restaurant) {
+        String currentDate = Helper.setCurrentDate();
+            // On prend la liste des subscribers via FireStore
+            FireStoreRestaurantRequest
+                    .getRestaurantSubscribersCollection(restaurant.getId())
+                    .document(currentDate)
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            subscribersCollection = Objects.requireNonNull(documentSnapshot).toObject(SubscribersCollection.class);
+                            if (subscribersCollection != null && subscribersCollection.getSubscribersList().contains(user.getUid())) {
+                                subscribRestaurant = restaurant.getName();
+                            }
+                            if (subscribRestaurant != null){
+                                textView.setText(user.getUsername() +" is eating("+ subscribRestaurant + ")");
+                                textView.setTypeface(null, Typeface.NORMAL);
+                                textView.setTextColor(Color.BLACK);
+                            }
+                        }
+                    });
     }
 
     private void setImageView(User user, RequestManager glide){

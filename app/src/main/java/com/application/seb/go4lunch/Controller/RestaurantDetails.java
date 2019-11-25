@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
+import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.Fragment.SubscribersFragment;
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
@@ -60,8 +62,6 @@ public class RestaurantDetails extends AppCompatActivity {
     ImageButton placeWebSiteButton;
     ArrayList<String> subscribers = new ArrayList<>();
     SubscribersCollection subscribersCollection;
-    Calendar calendar;
-    SimpleDateFormat df;
     String currentDate;
     Boolean userAlreadySubscribeOnePlace = false;
     ArrayList<String> placeLikeList = new ArrayList<>();
@@ -86,12 +86,8 @@ public class RestaurantDetails extends AppCompatActivity {
         placeLikeButton = findViewById(R.id.restaurant_details_like_image);
         placeWebSiteButton = findViewById(R.id.restaurant_details_website_image);
 
-        calendar = Calendar.getInstance();
-        df = new SimpleDateFormat("dd-MM-yyyy");
-        // Convert current date into string value
-        currentDate = df.format(calendar.getTime());
-        Log.e("RestaurantDetails", "currentDate = " + currentDate);
 
+        setCurrentDate();
         getActivityArgs();
         getPlaceLikedList();
         getSubscribersListByRestaurant();
@@ -101,6 +97,14 @@ public class RestaurantDetails extends AppCompatActivity {
         placeAddress.setText(place.getVicinity());
         setPlaceRatingBar();
         setPlaceTimes();
+    }
+
+    private void setCurrentDate(){
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+        // Convert current date into string value
+        currentDate = df.format(calendar.getTime());
+        Log.e("RestaurantDetails", "currentDate = " + currentDate);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -319,7 +323,7 @@ public class RestaurantDetails extends AppCompatActivity {
                             // Et que la taille de son tableau de subscribers est superieur à 0
                             if (subscribersCollection.getSubscribersList().size() > 0) {
                                 subscribers = subscribersCollection.getSubscribersList();
-                                Toast.makeText(getApplicationContext(), "Les subscribers du 15/10/2019 sont recup", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Les subscribers d'aujourd'hui sont recup", Toast.LENGTH_LONG).show();
                                 startSubscribersRecyclerView();
                             }else{
                                 // Et que sa taille est inférieure à 0
@@ -387,7 +391,6 @@ public class RestaurantDetails extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
 
     private void getRestaurantList(){
-
         // On recup la liste de tous les restaus
         FireStoreRestaurantRequest
                 .getRestaurantsCollection()
@@ -396,18 +399,12 @@ public class RestaurantDetails extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         Log.e("RestaurantDetails", "J'ai recup tous les restau");
-
                         //pour chaque restau on recup sa liste de subscribers
                         for (DocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())){
                             Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
                             Log.e("RestaurantDetails", "Je suis dans le restau : " + restaurant.getName());
-
                             getRestaurantSubscribersList(restaurant);
-                            // When every restaurants subscribers list are check
-                            // We configure the FloatingButton
-                            onFloatingButtonClick();
                         }
-
                     }
                 });
     }
@@ -421,14 +418,23 @@ public class RestaurantDetails extends AppCompatActivity {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         Log.e("RestaurantDetails", "Je suis dans la subscriberList de : " + restaurant.getName());
-
                         // On verifi si notre nom apparait dans cette liste
                         SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
                         verifyIfUserIsInSubscribersCollection(subscribersCollection, restaurant);
-
-
+                        onFloatingButtonClick();
                     }
                 });
+    }
+
+    private void saveSubscribePlace(){
+
+        SharedPreferences sharedPreferences = getSharedPreferences("subscribePlace", MODE_PRIVATE);
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        Intent intent = getIntent();
+        String response = intent.getStringExtra("PLACE_DETAILS");
+        prefEditor.putString("place", response);
+        prefEditor.apply();
+
     }
 
     private void verifyIfUserIsInSubscribersCollection(SubscribersCollection subscribersCollection, Restaurant restaurant){
@@ -444,7 +450,7 @@ public class RestaurantDetails extends AppCompatActivity {
     private void onFloatingButtonClick() {
 
         // Si l'utilisateur s'est deja inscris à ce restau
-        if(userAlreadySubscribeOnePlace = true){
+        if(userAlreadySubscribeOnePlace){
             // On modifie le bouton
             subscribeButton.setClickable(false);
             subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
@@ -479,10 +485,20 @@ public class RestaurantDetails extends AppCompatActivity {
                                         startSubscribersRecyclerView();
                                     }
                                 });
+
+                        // On met à jour notre utilisateur
+                        FireStoreUserRequest
+                                .getUsersCollection()
+                                .document(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
+                                .update("alreadySubscribeRestaurant", true);
+
+                        // Et on sauvegarde le restaurant
+                        saveSubscribePlace();
                     }
                 }
             });
         }
     }
+
 }
 

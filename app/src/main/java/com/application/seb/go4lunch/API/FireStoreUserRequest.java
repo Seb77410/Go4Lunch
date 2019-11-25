@@ -18,13 +18,13 @@ public class FireStoreUserRequest {
 
     // --- CREATE ---
 
-    public static Task<Void> createUser(String uid, String username, String urlPicture) {
-        User userToCreate = new User(uid, username, urlPicture);
+    public static Task<Void> createUser(String uid, String username, String urlPicture, String currentDate) {
+        User userToCreate = new User(uid, username, urlPicture, currentDate);
         return FireStoreUserRequest.getUsersCollection().document(uid).set(userToCreate);
     }
 
-    public static Task<Void> createUser(String uid, String username) {
-        User userToCreate = new User(uid, username);
+    public static Task<Void> createUser(String uid, String username, String currentDate) {
+        User userToCreate = new User(uid, username,currentDate);
         return FireStoreUserRequest.getUsersCollection().document(uid).set(userToCreate);
 
     }

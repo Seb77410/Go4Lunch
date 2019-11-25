@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     tools:openDrawer="start"
-
     >
 
     <RelativeLayout
@@ -29,8 +28,8 @@
             android:background="@color/colorPrimary"
             android:theme="@style/ToolBarStyle"
             app:title="@string/toolbar_title"
-            app:titleTextColor="@color/white">
-
+            app:titleTextColor="@color/white"
+            >
         </androidx.appcompat.widget.Toolbar>
 
 

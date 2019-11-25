@@ -12,7 +12,7 @@
 
     <TextView
         android:id="@+id/place_name"
-        android:layout_width="wrap_content"
+        android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:layout_marginTop="10dp"
@@ -27,7 +27,8 @@
         app:layout_constraintStart_toEndOf="@+id/place_subscribers_numbers"
         app:layout_constraintBottom_toBottomOf="@+id/place_ratingBar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/place_name" />
+        app:layout_constraintTop_toTopOf="@+id/place_name"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/place_distance"
@@ -55,12 +56,12 @@
         app:layout_constraintEnd_toStartOf="@+id/place_subscribers_numbers"
         app:layout_constraintTop_toTopOf="@+id/place_address"
         app:layout_constraintBottom_toBottomOf="@+id/place_address"
-        />
+        tools:ignore="ContentDescription" />
 
 
     <TextView
         android:id="@+id/place_address"
-        android:layout_width="wrap_content"
+        android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:ellipsize="middle"
         android:layout_marginEnd="10dp"
@@ -79,7 +80,6 @@
         style="?android:attr/ratingBarStyleSmall"
         android:isIndicator="true"
         android:max="5"
-        android:min="0"
         android:theme="@style/RatingBar"
         android:rotationY = "180"
         />

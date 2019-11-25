@@ -1,46 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     >
 
     <ImageView
         android:id="@+id/workmatesFragment_recyclerView_userImage"
-        android:layout_width="82dp"
-        android:layout_height="82dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="10dp"
-        android:contentDescription="Workmates photo" />
+        android:contentDescription="Workmates photo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/workmatesFragment_recyclerView_userTextView"
-        android:layout_width="wrap_content"
+        android:layout_width="275dp"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/workmatesFragment_recyclerView_userImage"
-        android:layout_alignBottom="@+id/workmatesFragment_recyclerView_userImage"
-        android:layout_alignParentEnd="true"
         android:textSize="15sp"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="15dp"
-        android:layout_marginBottom="30dp"
-        android:layout_toEndOf="@+id/workmatesFragment_recyclerView_userImage" />
+        app:layout_constraintBottom_toBottomOf="@+id/workmatesFragment_recyclerView_userImage"
+        app:layout_constraintStart_toEndOf="@+id/workmatesFragment_recyclerView_userImage"
+        app:layout_constraintTop_toTopOf="@+id/workmatesFragment_recyclerView_userImage" />
 
     <View
         android:id="@+id/workmatesFragment_recyclerView_userSeparator"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_below="@+id/workmatesFragment_recyclerView_userTextView"
-        android:layout_alignStart="@+id/workmatesFragment_recyclerView_userTextView"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:layout_marginStart="210dp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="0dp"
-        android:background="#FF909090" />
+        android:background="#FF909090"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/workmatesFragment_recyclerView_userImage" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
