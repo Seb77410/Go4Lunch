@@ -46,6 +46,7 @@ import com.google.gson.Gson;
 
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +71,7 @@ public class MapFragment extends Fragment implements
     private Disposable disposable;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private List<GooglePlacesResponse.Result> placesResponseList;
-    private List<Marker> markerList;
+    private ArrayList<Marker> markerList = new ArrayList<Marker>();
 
     //----------------------------------------------------------------------------------------------
     // Places list callback for MainActivity
@@ -183,7 +184,7 @@ public class MapFragment extends Fragment implements
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (!task.getResult().exists()){
-                            FireStoreRestaurantRequest.createRestaurant(value.getResults().get(x).getName(), value.getResults().get(x).getPlaceId());
+                            FireStoreRestaurantRequest.createRestaurant(value.getResults().get(x).getName(), value.getResults().get(x).getPlaceId(), value.getResults().get(x).getVicinity());
                         }
                     }
                 });

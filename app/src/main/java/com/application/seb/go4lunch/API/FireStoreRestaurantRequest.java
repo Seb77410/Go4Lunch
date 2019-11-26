@@ -27,8 +27,8 @@ public class FireStoreRestaurantRequest {
 
     // --- CREATE ---
 
-    public static Task<Void> createRestaurant(String name, String placeId) {
-        Restaurant restaurantToCreate = new Restaurant(name, placeId);
+    public static Task<Void> createRestaurant(String name, String placeId, String address) {
+        Restaurant restaurantToCreate = new Restaurant(name, placeId, address);
         return FireStoreRestaurantRequest.getRestaurantsCollection().document(placeId).set(restaurantToCreate, SetOptions.merge());
     }
 
