@@ -3,6 +3,7 @@ package com.application.seb.go4lunch.Controller;
 import androidx.annotation.NonNull;
 
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
+import com.application.seb.go4lunch.BuildConfig;
 import com.application.seb.go4lunch.Fragment.ListViewFragment;
 import com.application.seb.go4lunch.Fragment.MapFragment;
 import com.application.seb.go4lunch.Fragment.WorkmatesFragment;
@@ -16,14 +17,10 @@ import com.bumptech.glide.request.RequestOptions;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.api.model.TypeFilter;
-import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
@@ -31,7 +28,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -56,8 +52,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -125,28 +121,22 @@ public class MainActivity
         String currentDate =  Helper.setCurrentDate();
         FireStoreUserRequest
                 .getUser(FirebaseAuth.getInstance().getUid())
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        userDate = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getCurrentDate();
-                        Log.e("SignIn Activity", "La date de l'utilisateur actuel est : " + userDate);
-                        if(!currentDate.equals(userDate)){
-                            FireStoreUserRequest
-                                    .getUsersCollection()
-                                    .get()
-                                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                            for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                                                User user = document.toObject(User.class);
-                                                FireStoreUserRequest
-                                                        .getUsersCollection()
-                                                        .document(user.getUid())
-                                                        .update("currentDate", currentDate,"alreadySubscribeRestaurant",false);
-                                            }
-                                        }
-                                    });
-                        }
+                .addOnSuccessListener(documentSnapshot -> {
+                    userDate = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getCurrentDate();
+                    Log.d("SignIn Activity", "User current date is  : " + userDate);
+                    if(!currentDate.equals(userDate)){
+                        FireStoreUserRequest
+                                .getUsersCollection()
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                                        User user = document.toObject(User.class);
+                                        FireStoreUserRequest
+                                                .getUsersCollection()
+                                                .document(Objects.requireNonNull(user).getUid())
+                                                .update(Constants.CURRENT_DATE, currentDate,Constants.ALREADY_SUBSCRIBE_RESTAURANT,false);
+                                    }
+                                });
                     }
                 });
     }
@@ -174,21 +164,18 @@ public class MainActivity
                 .getUsersCollection()
                 .document(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        x = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getAlreadySubscribeRestaurant();
-                        Log.e("User bolean", "alreadySubscribeRestaurant" + x.toString());
-                        // Glue drawerLayout to .xml file
-                        drawerLayout =  findViewById(R.id.activity_main_drawer_layout);
-                        // Glue drawer menu to MainActivity toolbar
-                        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(activity, drawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-                        // Add listener to the menu drawer
-                        drawerLayout.addDrawerListener(toggle);
-                        // Add animation on drawer menu button when Open/close
-                        toggle.syncState();
-                        setDrawerUserInfos();
-                    }
+                .addOnSuccessListener(documentSnapshot -> {
+                    x = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getAlreadySubscribeRestaurant();
+                    Log.d("User boolean", Constants.ALREADY_SUBSCRIBE_RESTAURANT + "= " +x.toString());
+                    // Glue drawerLayout to .xml file
+                    drawerLayout =  findViewById(R.id.activity_main_drawer_layout);
+                    // Glue drawer menu to MainActivity toolbar
+                    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(activity, drawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                    // Add listener to the menu drawer
+                    drawerLayout.addDrawerListener(toggle);
+                    // Add animation on drawer menu button when Open/close
+                    toggle.syncState();
+                    setDrawerUserInfos();
                 });
     }
 
@@ -219,7 +206,7 @@ public class MainActivity
 
         if (uri != null) {
             String userPhotoUrl = uri.toString();
-            Log.e("La photo : ", "de l'utilisateur esr" + userPhotoUrl);
+            Log.d("Drawer menu", "User photo url : " + userPhotoUrl);
             Glide
                     .with(getApplicationContext())
                     .load(userPhotoUrl)
@@ -256,20 +243,24 @@ public class MainActivity
 
             case R.id.activity_main_drawer_you_lunch :
                 if (x) {
-                    SharedPreferences sharedPreferences = getSharedPreferences("subscribePlace", MODE_PRIVATE);
-                    String place = sharedPreferences.getString("place", null);
+                    SharedPreferences sharedPreferences = getSharedPreferences(Constants.SUBSCRIBE_PLACE_PREF, MODE_PRIVATE);
+                    String place = sharedPreferences.getString(Constants.SUBSCRIBE_PLACE_PREF_VALUE, null);
                     Intent intent = new Intent(this, RestaurantDetails.class);
-                    intent.putExtra("PLACE_DETAILS", place);
+                    intent.putExtra(Constants.PLACE_DETAILS, place);
                     startActivity(intent);
                 }
+                else{
+                    Toast.makeText(getApplicationContext(), "No restaurant subscribe", Toast.LENGTH_LONG).show();
+                }
                 break;
+
             case R.id.activity_main_drawer_logout :
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(this, SignInActivity.class);
                 startActivity(intent);
                 break;
+
             case R.id.activity_main_drawer_settings :
-                //TODO :
                 break;
         }
         this.drawerLayout.closeDrawer(GravityCompat.START);
@@ -355,11 +346,8 @@ public class MainActivity
         // Search button ==> Start SearchActivity
         if (item.getItemId() == R.id.search_menu) {
 
-
             // Initialize the SDK
-            Places.initialize(getApplicationContext(), "AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
-            // Create a new Places client instance
-            PlacesClient placesClient = Places.createClient(this);
+            Places.initialize(getApplicationContext(), BuildConfig.PLACE_API_KEY);
 
             // Set the fields to specify which types of place data to
             // return after the user has made a selection.

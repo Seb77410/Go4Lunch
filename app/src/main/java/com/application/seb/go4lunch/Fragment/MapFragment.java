@@ -1,6 +1,5 @@
 package com.application.seb.go4lunch.Fragment;
 
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,12 +18,14 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
+import com.application.seb.go4lunch.BuildConfig;
 import com.application.seb.go4lunch.Controller.RestaurantDetails;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.Utils.GooglePlacesStream;
+import com.application.seb.go4lunch.Utils.Helper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -36,18 +37,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -71,7 +62,6 @@ public class MapFragment extends Fragment implements
     private Disposable disposable;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private List<GooglePlacesResponse.Result> placesResponseList;
-    private ArrayList<Marker> markerList = new ArrayList<Marker>();
 
     //----------------------------------------------------------------------------------------------
     // Places list callback for MainActivity
@@ -136,7 +126,7 @@ public class MapFragment extends Fragment implements
         //optionsMap.put("type", "food,restaurant");
         optionsMap.put("keyword", "restaurant,pizza");
         optionsMap.put("rankby", "distance");
-        optionsMap.put("key", "AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
+        optionsMap.put("key", BuildConfig.PLACE_API_KEY);
     }
 
     private void getNearbyPlaces(LatLng lastLocation){
@@ -180,12 +170,9 @@ public class MapFragment extends Fragment implements
         FireStoreRestaurantRequest
                 .getRestaurantsCollection()
                 .document(value.getResults().get(x).getPlaceId()).get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (!task.getResult().exists()){
-                            FireStoreRestaurantRequest.createRestaurant(value.getResults().get(x).getName(), value.getResults().get(x).getPlaceId(), value.getResults().get(x).getVicinity());
-                        }
+                .addOnCompleteListener(task -> {
+                    if (!Objects.requireNonNull(task.getResult()).exists()){
+                        FireStoreRestaurantRequest.createRestaurant(value.getResults().get(x).getName(), value.getResults().get(x).getPlaceId(), value.getResults().get(x).getVicinity());
                     }
                 });
     }
@@ -202,30 +189,24 @@ public class MapFragment extends Fragment implements
         markerOptions.position(latLng);
         markerOptions.title(value.getResults().get(x).getName());
         // Get current date into sting value
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-        String currentDate = df.format(calendar.getTime());
+        String currentDate = Helper.setCurrentDate();
 
         // Verify if restaurant have already at least one subscriber and add marker according response
         FireStoreRestaurantRequest
                 .getRestaurantSubscribersCollection(value.getResults().get(x).getPlaceId())
                 .document(currentDate)
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+                .addOnSuccessListener(documentSnapshot -> {
+                    SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
 
-                        if (subscribersCollection != null && subscribersCollection.getSubscribersList().size() > 0) {
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
+                    if (subscribersCollection != null && subscribersCollection.getSubscribersList().size() > 0) {
+                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
 
-                        }else {
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurants_red));
-                        }
-                        Marker mMarker = mMap.addMarker(markerOptions);
-                        mMarker.setTag(x);
-                        markerList.add(mMarker);
+                    }else {
+                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurants_red));
                     }
+                    Marker mMarker = mMap.addMarker(markerOptions);
+                    mMarker.setTag(x);
                 });
 
 

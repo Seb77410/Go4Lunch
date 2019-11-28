@@ -8,8 +8,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.application.seb.go4lunch.R;
-
-import java.util.Objects;
+import com.application.seb.go4lunch.Utils.Constants;
 
 public class WebViewActivity extends AppCompatActivity {
 
@@ -24,7 +23,7 @@ public class WebViewActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient());
         // Get url
         Intent intent = getIntent();
-        String url =  intent.getStringExtra("url");
+        String url =  intent.getStringExtra(Constants.URL);
         // Show url
         webView.loadUrl(url);
     }

@@ -1,6 +1,5 @@
 package com.application.seb.go4lunch.Controller;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -9,7 +8,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -18,31 +16,28 @@ import android.widget.Toast;
 
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
+import com.application.seb.go4lunch.BuildConfig;
 import com.application.seb.go4lunch.Fragment.SubscribersFragment;
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.Model.Restaurant;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.R;
+import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.Utils.GooglePlacesStream;
+import com.application.seb.go4lunch.Utils.Helper;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -62,7 +57,7 @@ public class RestaurantDetails extends AppCompatActivity {
     ImageButton placeWebSiteButton;
     ArrayList<String> subscribers = new ArrayList<>();
     SubscribersCollection subscribersCollection;
-    String currentDate;
+    String currentDate = Helper.setCurrentDate();
     Boolean userAlreadySubscribeOnePlace = false;
     ArrayList<String> placeLikeList = new ArrayList<>();
 
@@ -87,7 +82,6 @@ public class RestaurantDetails extends AppCompatActivity {
         placeWebSiteButton = findViewById(R.id.restaurant_details_website_image);
 
 
-        setCurrentDate();
         getActivityArgs();
         getPlaceLikedList();
         getSubscribersListByRestaurant();
@@ -99,80 +93,58 @@ public class RestaurantDetails extends AppCompatActivity {
         setPlaceTimes();
     }
 
-    private void setCurrentDate(){
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-        // Convert current date into string value
-        currentDate = df.format(calendar.getTime());
-        Log.e("RestaurantDetails", "currentDate = " + currentDate);
-    }
-
     //----------------------------------------------------------------------------------------------
     // Showing restaurant details on UI
     //----------------------------------------------------------------------------------------------
 
-
     private void setPlaceLikeButton() {
-        placeLikeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.e("Like Button", "onClick ! ");
-                // Si l'utilisateur ne fais pas partie de ceux qui se sont inscrit à ce restau
-                if (!placeLikeList.contains(FirebaseAuth.getInstance().getUid())) {
-                    placeLikeList.add(FirebaseAuth.getInstance().getUid());
-                    HashMap<String, ArrayList<String>> data = new HashMap<>();
-                    data.put("userLikeList", placeLikeList);
+        placeLikeButton.setOnClickListener(v -> {
+            Log.d("Like Button", "onClick ! ");
+            // If current user have not yet liked this place
+            if (!placeLikeList.contains(FirebaseAuth.getInstance().getUid())) {
+                placeLikeList.add(FirebaseAuth.getInstance().getUid());
+                HashMap<String, ArrayList<String>> data = new HashMap<>();
+                data.put(Constants.USER_LIKE_LIST, placeLikeList);
 
-                    FireStoreRestaurantRequest
-                            .getRestaurantsCollection()
-                            .document(place.getPlaceId())
-                            .set(data, SetOptions.merge())
-                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                Log.e("Like Button", "Liste mise à jour");
-                                Toast.makeText(getApplicationContext(), "You just like this restaurant", Toast.LENGTH_LONG).show();
-                                }
-                            });
-                }
+                FireStoreRestaurantRequest
+                        .getRestaurantsCollection()
+                        .document(place.getPlaceId())
+                        .set(data, SetOptions.merge())
+                        .addOnSuccessListener(aVoid -> {
+                        Log.d("Like Button", "Place liked list update");
+                        Toast.makeText(getApplicationContext(), Constants.PLACE_JUST_LIKE, Toast.LENGTH_LONG).show();
+                        });
             }
         });
     }
 
     private void setCallButton(GooglePlaceOpeningHoursResponse value) {
-        placeCallButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (value.getResult().getFormattedPhoneNumber() != null) {
-                    Log.e("RestaurantDetails", "setCallButton : place phone number : " + value.getResult().getFormattedPhoneNumber());
+        placeCallButton.setOnClickListener(v -> {
+            if (value.getResult().getFormattedPhoneNumber() != null) {
+                Log.d("RestaurantDetails", "setCallButton : place phone number : " + value.getResult().getFormattedPhoneNumber());
 
-                    String phoneNumber = "tel:" +value.getResult().getFormattedPhoneNumber();
-                    Intent intent = new Intent(Intent.ACTION_CALL);
-                    intent.setData(Uri.parse(phoneNumber));
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "This restaurant have no phone number", Toast.LENGTH_LONG).show();
-                }
+                String phoneNumber = Constants.TEL + value.getResult().getFormattedPhoneNumber();
+                Intent intent = new Intent(Intent.ACTION_CALL);
+                intent.setData(Uri.parse(phoneNumber));
+                startActivity(intent);
+            } else {
+                Toast.makeText(getApplicationContext(), Constants.NO_PHONE_NUMBER, Toast.LENGTH_LONG).show();
             }
         });
     }
 
-
     private void setWebSiteButton(GooglePlaceOpeningHoursResponse value) {
+        // Get website url
         String webSite = value.getResult().getWebsite();
-        Log.e("RestaurantDetails", "setWebSiteButton : Website url  : " + webSite);
-
-
+        Log.d("RestaurantDetails", "setWebSiteButton : Website url  : " + webSite);
+        // Start WebViewActivity
         Intent intent = new Intent(getApplicationContext(), WebViewActivity.class);
-        intent.putExtra("url", webSite);
-        placeWebSiteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (webSite != null) {
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "This restaurant have not website", Toast.LENGTH_LONG).show();
-                }
+        intent.putExtra(Constants.URL, webSite);
+        placeWebSiteButton.setOnClickListener(v -> {
+            if (webSite != null) {
+                startActivity(intent);
+            } else {
+                Toast.makeText(getApplicationContext(), Constants.NO_WEBSITE, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -183,7 +155,7 @@ public class RestaurantDetails extends AppCompatActivity {
     private void setPlaceRatingBar() {
         float percentagePlaceRating = (float) ((place.getRating() * 100) / 5);
         float myPlaceRating = (3 * percentagePlaceRating) / 100;
-        Log.e("RestaurantDetails", "Place rate : " + myPlaceRating);
+        Log.d("RestaurantDetails", "Place rate : " + myPlaceRating);
         placeRatingBar.setRating(myPlaceRating);
     }
 
@@ -192,9 +164,8 @@ public class RestaurantDetails extends AppCompatActivity {
      */
     private void setPlaceImage() {
         if (place.getPhotos() != null && place.getPhotos().get(0).getPhotoReference() != null) {
-            String photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference="
-                    + place.getPhotos().get(0).getPhotoReference() + "&key=" + "AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc";
-            Log.e("PlaceDetails.activity", "Photo url : " + photoUrl);
+            String photoUrl = Constants.HEAD_LINK + place.getPhotos().get(0).getPhotoReference() + Constants.KEY_PARAMETERS + BuildConfig.PLACE_API_KEY;
+            Log.d("PlaceDetails.activity", "Photo url : " + photoUrl);
 
             Glide.with(this)
                     .load(photoUrl)
@@ -204,7 +175,7 @@ public class RestaurantDetails extends AppCompatActivity {
                     .into(placeImage);
         } else {
             placeImage.setImageResource(R.drawable.no_image);
-            Log.e("PlaceDetails.activity", "Photo url : " + "Pas d'url");
+            Log.d("PlaceDetails.activity", "Photo url : " + "Pas d'url");
         }
     }
 
@@ -213,7 +184,7 @@ public class RestaurantDetails extends AppCompatActivity {
      */
     private void getActivityArgs() {
         Intent intent = getIntent();
-        String response = intent.getStringExtra("PLACE_DETAILS");
+        String response = intent.getStringExtra(Constants.PLACE_DETAILS);
         Log.d("RestaurantDetails", "Activity args : " + response);
 
         Gson gson = new Gson();
@@ -231,7 +202,7 @@ public class RestaurantDetails extends AppCompatActivity {
      * - else : app show place closing hour
      */
     private void setPlaceTimes() {
-        Log.e("RestaurantDetails", "SetPlaceTimes : Place id is " + place.getId());
+        Log.d("RestaurantDetails", "SetPlaceTimes : Place id is " + place.getId());
         HashMap<String, String> optionsMap = new HashMap<>();
         configurePlaceDetailsRequest(place, optionsMap);
         executePlaceDetailsRequest(optionsMap);
@@ -244,20 +215,20 @@ public class RestaurantDetails extends AppCompatActivity {
     /**
      * Configure a HashMap as query for PlaceDetails request
      *
-     * @param place
-     * @param optionsMap
+     * @param place is the place that we want to get details
+     * @param optionsMap is HashMap<String> that contains api request parameters
      */
     private void configurePlaceDetailsRequest(GooglePlacesResponse.Result place, HashMap<String, String> optionsMap) {
-        optionsMap.put("place_id", place.getPlaceId());
-        optionsMap.put("fields", "name,website,opening_hours,formatted_phone_number");
-        optionsMap.put("key", "AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc");
+        optionsMap.put(Constants.PLACE_ID, place.getPlaceId());
+        optionsMap.put(Constants.FIELDS, Constants.FIELDS_VALUES);
+        optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
 
     }
 
     /**
      * Execute a PlaceDetails request according current place
      *
-     * @param optionsMap
+     * @param optionsMap is HashMap<String> that contains api request parameters
      */
     private void executePlaceDetailsRequest(HashMap<String, String> optionsMap) {
         GooglePlacesStream.streamFetchDetailsRequest(optionsMap)
@@ -273,18 +244,13 @@ public class RestaurantDetails extends AppCompatActivity {
 
                             setCallButton(value);
                             setWebSiteButton(value);
-                        } else {
-                            whenResponseNotSuccessful(value);
                         }
+                        else {whenResponseNotSuccessful(value);}
                     }
-
                     @Override
-                    public void onError(Throwable e) {
-                    }
-
+                    public void onError(Throwable e) {}
                     @Override
-                    public void onComplete() {
-                    }
+                    public void onComplete() {}
                 });
     }
 
@@ -294,9 +260,9 @@ public class RestaurantDetails extends AppCompatActivity {
      * @param value is a GooglePlaceOpeningHoursResponse instance that PlaceDetails request return
      */
     private void whenResponseNotSuccessful(GooglePlaceOpeningHoursResponse value) {
-        // Si on a atteint la limite de requete, on affiche qu'on a atteint cette limite
-        if (value.getStatus().equals("OVER_QUERY_LIMIT")) {
-            placeTimes.setText("OVER_QUERY_LIMIT");
+        // If google API request is over limit
+        if (value.getStatus().equals(Constants.OVER_QUERY_LIMIT)) {
+            placeTimes.setText(Constants.OVER_QUERY_LIMIT);
             Log.e("RestaurantDetails", "setPlacesTimes : place request OVER_QUERY_LIMIT");
         }
     }
@@ -304,37 +270,31 @@ public class RestaurantDetails extends AppCompatActivity {
     // Get place subscribers list
     //----------------------------------------------------------------------------------------------
     private void getSubscribersListByRestaurant(){
-
-        // Execute firestore request
+        // Execute fireStore request
         FirebaseFirestore.getInstance()
-                .collection("restaurants")
+                .collection(Constants.RESTAURANT_COLLECTION_NAME)
                 .document(place.getPlaceId())
-                .collection("subscribers")
+                .collection(Constants.SUBSCRIBERS_COLLECTION_NAME)
                 .document(currentDate)
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        // On transform la réponse en objet subscribersCollection
-                        subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
-
-                        // Si le document existe
-                        if (subscribersCollection != null ) {
-                            // Et que la taille de son tableau de subscribers est superieur à 0
-                            if (subscribersCollection.getSubscribersList().size() > 0) {
-                                subscribers = subscribersCollection.getSubscribersList();
-                                Toast.makeText(getApplicationContext(), "Les subscribers d'aujourd'hui sont recup", Toast.LENGTH_LONG).show();
-                                startSubscribersRecyclerView();
-                            }else{
-                                // Et que sa taille est inférieure à 0
-                                Toast.makeText(getApplicationContext(), "La liste des subscribers est vide", Toast.LENGTH_LONG).show();
-                            }
+                .addOnSuccessListener(documentSnapshot -> {
+                    // Transform response to SubscribersCollection instance
+                    subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+                    // If document exist
+                    if (subscribersCollection != null ) {
+                        // And his size > 0
+                        if (subscribersCollection.getSubscribersList().size() > 0) {
+                            subscribers = subscribersCollection.getSubscribersList();
+                            Log.d("RestaurantDetails", "Receive place subscribers list : " + subscribers);
+                            startSubscribersRecyclerView();
+                        }else{
+                         // And his size < 0
+                            Log.d("RestaurantDetails", "Subscribers list size = 0");
                         }
-                        // Si le document n'existe pas
-                        else {
-                            Toast.makeText(getApplicationContext(), "L'objet subscribers est null", Toast.LENGTH_LONG).show();
-                        }
-
+                    }
+                    // If document no exist
+                    else {
+                        Log.d("RestaurantDetails", "SubscribersCollection instance = null");
                     }
                 });
     }
@@ -342,36 +302,31 @@ public class RestaurantDetails extends AppCompatActivity {
 
 
     private void getPlaceLikedList(){
-
+        // Get current restaurant
         FireStoreRestaurantRequest
                 .getRestaurantsCollection()
                 .document(place.getPlaceId())
                 .get()
-                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                     @Override
-                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-
-                         if(task.isSuccessful()){
-                             Log.e("Error", "NO ERROR getting documents: ", task.getException());
-                             Restaurant restaurant = Objects.requireNonNull(task.getResult()).toObject(Restaurant.class);
-                             if (restaurant != null) {
-                                 if (restaurant.getUserLikeList() != null){
-                                     if (restaurant.getUserLikeList().size() > 0){
-                                         placeLikeList = restaurant.getUserLikeList();
-                                     }
-                                     else{
-                                         Log.e("Liked List", "La liste de likeurs = 0 ");
-                                     }
+                 .addOnCompleteListener(task -> {
+                     if(task.isSuccessful()){
+                         Restaurant restaurant = Objects.requireNonNull(task.getResult()).toObject(Restaurant.class);
+                         if (restaurant != null) {
+                             if (restaurant.getUserLikeList() != null){
+                                 if (restaurant.getUserLikeList().size() > 0){
+                                     placeLikeList = restaurant.getUserLikeList();
                                  }
                                  else{
-                                     Log.e("Liked List", "La liste de likeurs est null ");
+                                     Log.d("RestaurantDetails", "Liked list size = 0 ");
                                  }
-                                 setPlaceLikeButton();
                              }
+                             else{
+                                 Log.d("RestaurantDetails", "Liked list =  null ");
+                             }
+                             setPlaceLikeButton();
                          }
-                         else{
-                             Log.e("Error", "Error getting documents: ", task.getException());
-                         }
+                     }
+                     else{
+                         Log.e("Error", "Error getting documents: ", task.getException());
                      }
                  });
     }
@@ -391,48 +346,40 @@ public class RestaurantDetails extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
 
     private void getRestaurantList(){
-        // On recup la liste de tous les restaus
+        // Get all FireStore Restaurants
         FireStoreRestaurantRequest
                 .getRestaurantsCollection()
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        Log.e("RestaurantDetails", "J'ai recup tous les restau");
-                        //pour chaque restau on recup sa liste de subscribers
-                        for (DocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())){
-                            Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
-                            Log.e("RestaurantDetails", "Je suis dans le restau : " + restaurant.getName());
-                            getRestaurantSubscribersList(restaurant);
-                        }
+                .addOnCompleteListener(task -> {
+                    Log.d("RestaurantDetails", "Get restaurant list");
+                    // Get current SubscribersCollection for every restaurant
+                    for (DocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())){
+                        Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
+                        getRestaurantSubscribersList(Objects.requireNonNull(restaurant));
                     }
                 });
     }
 
     private void getRestaurantSubscribersList(Restaurant restaurant){
+        // Get current SubscribersCollection from restaurant
         FireStoreRestaurantRequest
                 .getRestaurantSubscribersCollection(restaurant.getId())
                 .document(currentDate)
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        Log.e("RestaurantDetails", "Je suis dans la subscriberList de : " + restaurant.getName());
-                        // On verifi si notre nom apparait dans cette liste
-                        SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
-                        verifyIfUserIsInSubscribersCollection(subscribersCollection, restaurant);
-                        onFloatingButtonClick();
-                    }
+                .addOnSuccessListener(documentSnapshot -> {
+                    // Verify if current user is in restaurant SubscribersCollection
+                    SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+                    verifyIfUserIsInSubscribersCollection(subscribersCollection, restaurant);
+                    onFloatingButtonClick();
                 });
     }
 
     private void saveSubscribePlace(){
-
-        SharedPreferences sharedPreferences = getSharedPreferences("subscribePlace", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.SUBSCRIBE_PLACE_PREF, MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         Intent intent = getIntent();
-        String response = intent.getStringExtra("PLACE_DETAILS");
-        prefEditor.putString("place", response);
+        String response = intent.getStringExtra(Constants.PLACE_DETAILS);
+        prefEditor.putString(Constants.SUBSCRIBE_PLACE_PREF_VALUE, response);
         prefEditor.apply();
 
     }
@@ -440,7 +387,7 @@ public class RestaurantDetails extends AppCompatActivity {
     private void verifyIfUserIsInSubscribersCollection(SubscribersCollection subscribersCollection, Restaurant restaurant){
         if (subscribersCollection != null && subscribersCollection.getSubscribersList().contains(FirebaseAuth.getInstance().getUid())) {
             userAlreadySubscribeOnePlace = true;
-            Log.e("RestaurantDetails", "L'utilisateur a souscris a ce restau : " + restaurant.getName());
+            Log.d("RestaurantDetails", "Current user subscribed this restaurant : " + restaurant.getName());
         }
     }
 
@@ -449,52 +396,44 @@ public class RestaurantDetails extends AppCompatActivity {
      */
     private void onFloatingButtonClick() {
 
-        // Si l'utilisateur s'est deja inscris à ce restau
+        // If user already subscribed any restaurant
         if(userAlreadySubscribeOnePlace){
-            // On modifie le bouton
+            // Modify FloatingButton view
             subscribeButton.setClickable(false);
             subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
             subscribeButton.setImageResource(R.drawable.green_check);
         }
-        // Si l'utilisateur ne s'est pas encore inscrit à ce restau
+        // If user didn't subscribed any restaurant
         else {
             subscribeButton.setClickable(true);
-            subscribeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            // When user click on FloatingButton
+            subscribeButton.setOnClickListener(v -> {
+                // Modify floating button view
+                Log.d("RestaurantDetails", "User just click on Floating button");
+                subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
+                subscribeButton.setImageResource(R.drawable.green_check);
 
-                    // Modify floating button view
-                    Log.e("RestaurantDetails", "User just click on Floating button");
-                    subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
-                    subscribeButton.setImageResource(R.drawable.green_check);
+                // If user didn't subscribed this restaurant
+                if (!subscribers.contains(FirebaseAuth.getInstance().getUid())) {
 
-                    // Si l'utilisateur ne fais pas partie de ceux qui se sont inscrit à ce restau
-                    if (!subscribers.contains(FirebaseAuth.getInstance().getUid())) {
+                    // Add user into restaurant subscribers list
+                    subscribers.add(FirebaseAuth.getInstance().getUid());
+                    HashMap<String, ArrayList<String>> data = new HashMap<>();
+                    data.put(Constants.SUBSCRIBERS_LIST, subscribers);
+                    FireStoreRestaurantRequest
+                            .getRestaurantSubscribersCollection(place.getPlaceId())
+                            .document(currentDate)
+                            .set(data, SetOptions.merge())
+                            .addOnSuccessListener(aVoid -> startSubscribersRecyclerView());
 
-                        // Ajoute l'utilisateur à la liste des subscribers du restau
-                        subscribers.add(FirebaseAuth.getInstance().getUid());
-                        HashMap<String, ArrayList<String>> data = new HashMap<>();
-                        data.put("subscribersList", subscribers);
-                        FireStoreRestaurantRequest
-                                .getRestaurantSubscribersCollection(place.getPlaceId())
-                                .document(currentDate)
-                                .set(data, SetOptions.merge())
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        startSubscribersRecyclerView();
-                                    }
-                                });
+                    // Update user value
+                    FireStoreUserRequest
+                            .getUsersCollection()
+                            .document(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
+                            .update(Constants.ALREADY_SUBSCRIBE_RESTAURANT, true);
 
-                        // On met à jour notre utilisateur
-                        FireStoreUserRequest
-                                .getUsersCollection()
-                                .document(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
-                                .update("alreadySubscribeRestaurant", true);
-
-                        // Et on sauvegarde le restaurant
-                        saveSubscribePlace();
-                    }
+                    // And save restaurant
+                    saveSubscribePlace();
                 }
             });
         }

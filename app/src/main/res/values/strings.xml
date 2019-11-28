@@ -1,10 +1,10 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <!-- App name -->
-    <string name="app_name">Go4Lunch</string>
+    <string name="app_name" translatable="false">Go4Lunch</string>
 
     <!-- Toolbar title -->
-    <string name="toolbar_title">I\'m hungry !</string>
+    <string name="toolbar_title" translatable="false">I\'m hungry !</string>
 
     <!-- Bottom view values -->
     <string name="map_view_title">Map View</string>
@@ -20,7 +20,7 @@
     <string name="twitter_consumer_secret" translatable="false">MLNlbtix6Nw1rFFMBrA5dLF1QH1835Xwf6L0bOH2u9wsLXLHQs</string>
 
     <!-- Error message -->
-    <string name="fireStore_request_error">Erreur lors de la requête FireStore</string>
+    <string name="fireStore_request_error">FireStore request error</string>
 
     <!-- For drawer menu -->
     <string name="navigation_drawer_open">Navigation drawer open</string>
@@ -30,9 +30,5 @@
     <string name="map_key" translatable="false">
         AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc
     </string>
-    <string name="PLACE_API_KEY" translatable="false">
-        AIzaSyBoSMw5DTASuHRDEmR_Kwwa43u97fIMXts
-    </string>
-
 
 </resources>

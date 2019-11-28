@@ -43,14 +43,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.e("Firebase messaging", "Receive");
         getUserInfo();
     }
 
     private void showNotification() {
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATIONS_TAG, "Notification", NotificationManager.IMPORTANCE_DEFAULT);
             notificationChannel.enableLights(true);
@@ -58,17 +57,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             notificationManager.createNotificationChannel(notificationChannel);
         }
 
-
         NotificationCompat.Builder notifBuilder = new NotificationCompat.Builder(this, NOTIFICATIONS_TAG);
         notifBuilder
                 .setContentTitle(getString(R.string.app_name))
                 .setSmallIcon(R.drawable.ic_logo_go4lunch)
                 .setAutoCancel(true)
-                .setContentText(body);
+                .setContentText(body)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(body));
 
         notificationManager.notify(NOTIFICATIONS_TAG,NOTIFICATIONS_CHANNEL_ID, notifBuilder.build());
-
-
     }
 
     @Override
@@ -85,21 +83,24 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         user = documentSnapshot.toObject(User.class);
                         getUserSubscribedRestaurant();
+                        Log.e("Notifications", "getUserInfo()");
                     }
                 });
     }
 
     private void getUserSubscribedRestaurant(){
-
+        Log.e("Notifications", "getUserSubscribedRestaurant()");
+        // Get every restaurant
         FireStoreRestaurantRequest
                 .getRestaurantsCollection()
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
-
-                        for (DocumentSnapshot document : task.getResult()){
-                                Restaurant restaurant = document.toObject(Restaurant.class);
+                        Log.e("Notifications", "getUserSubscribedRestaurant() onComplete()");
+                        // For every restaurant : get Subscribers document for current date
+                        for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())){
+                            Restaurant restaurant = document.toObject(Restaurant.class);
                             FireStoreRestaurantRequest
                                     .getRestaurantSubscribersCollection(Objects.requireNonNull(restaurant).getId())
                                     .document(currentDate)
@@ -107,16 +108,18 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                                     .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                         @Override
                                         public void onSuccess(DocumentSnapshot documentSnapshot) {
-
+                                            Log.e("Notifications", "getUserSubscribedRestaurant() onSuccess() for restaurant Subscribers document");
                                             SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
-
+                                            // If the document of current date have a subscribers list wich contains current user :
                                             if (subscribersCollection != null && subscribersCollection.getSubscribersList().contains(user.getUid())){
                                                 restaurantName = restaurant.getName();
                                                 restaurantAddress = restaurant.getAddress();
                                                 restaurantSubscribersId = subscribersCollection.getSubscribersList();
                                                 restaurantSubscribersId.remove(user.getUid());
                                                 Log.e("Notifications", "Le retau : " + restaurantName + " Son adresse : " + restaurantAddress + " Ses subscribers : " + restaurantSubscribersId);
-                                                    for (int x = 0; x < restaurantSubscribersId.size(); x++){
+                                                // If
+                                                if (restaurantSubscribersId.size()>0){
+                                                for (int x = 0; x < restaurantSubscribersId.size(); x++){
                                                         int finalX = x;
                                                         FireStoreUserRequest
                                                                 .getUsersCollection()
@@ -134,8 +137,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                                                                     }
                                                                 });
                                                     }
+                                                }else{
+                                                    setNotificationMessage();
+                                                    showNotification();
+                                                }
                                             }else{
-
+                                                Log.e("Notification", "Not subscribe this restaurant : " + restaurant.getName());
                                             }
                                         }
                                     });
@@ -146,6 +153,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void setNotificationMessage() {
 
-        body = restaurantName + " " + restaurantAddress + " " + restaurantSubscribersName;
+        body = "Restaurant : " + restaurantName + "\nAddress :  " + restaurantAddress + "\nWorkmates : " + restaurantSubscribersName;
     }
 }

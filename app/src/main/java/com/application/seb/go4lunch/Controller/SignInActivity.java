@@ -3,12 +3,9 @@ package com.application.seb.go4lunch.Controller;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.R;
@@ -16,9 +13,7 @@ import com.application.seb.go4lunch.Utils.Helper;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -26,9 +21,6 @@ import java.util.Objects;
 import static com.application.seb.go4lunch.Utils.Constants.RC_SIGN_IN;
 
 public class SignInActivity extends AppCompatActivity {
-
-
-    private boolean alreadySignIn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,20 +68,23 @@ public class SignInActivity extends AppCompatActivity {
         IdpResponse response = IdpResponse.fromResultIntent(data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) { // SUCCESS
-                Log.e("Utilisateur identifié ","User id = " + Objects.requireNonNull(this.getCurrentUser()).getUid() + ", User name = " + this.getCurrentUser().getDisplayName() + ", User photo url : " + String.valueOf(this.getCurrentUser().getPhotoUrl()));
+                Log.d("Auth successful"
+                        , "User id = " + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()
+                        + ", User name = " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName()
+                        + ", User photo url : "
+                        + FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl());
                 createUser();
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
-                // setDrawerUserInfos();
             } else { // ERRORS
                 if (response == null) {
-                    Toast.makeText(getApplicationContext(), "Erreur : authentification annulée", Toast.LENGTH_LONG).show();
+                    Log.e("SignIn activity", "Error : Auth cancel");
                     startSignInActivity();
                 } else if (Objects.requireNonNull(response.getError()).getErrorCode() ==  ErrorCodes.NO_NETWORK) {
-                    Toast.makeText(getApplicationContext(), "Erreur : pas d'internet ", Toast.LENGTH_LONG).show();
+                    Log.e("SignIn activity", "Error : internet is OFf");
                     startSignInActivity();
                 } else if (Objects.requireNonNull(response.getError()).getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
-                    Toast.makeText(getApplicationContext(), "Erreur inconnue", Toast.LENGTH_LONG).show();
+                    Log.e("SignIn activity", "Unknown error");
                     startSignInActivity();
                 }
             }
@@ -101,29 +96,23 @@ public class SignInActivity extends AppCompatActivity {
     private void createUser(){
         FireStoreUserRequest
                 .getUsersCollection()
-                .document(Objects.requireNonNull(getCurrentUser()).getUid())
+                .document(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if(!documentSnapshot.exists()){
                         // We save User infos into FireStore database
-                        if (getCurrentUser().getPhotoUrl() != null) {
-                            FireStoreUserRequest.createUser(Objects.requireNonNull(getCurrentUser()).getUid(), getCurrentUser().getDisplayName(), Objects.requireNonNull(getCurrentUser().getPhotoUrl()).toString(), Helper.setCurrentDate())
-                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                    startActivity(intent);
-                                }
+                        if (FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl() != null) {
+                            FireStoreUserRequest.createUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).toString(), Helper.setCurrentDate())
+                            .addOnSuccessListener(aVoid -> {
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                startActivity(intent);
                             });
 
                         }else{
-                            FireStoreUserRequest.createUser(Objects.requireNonNull(getCurrentUser()).getUid(), getCurrentUser().getDisplayName(), Helper.setCurrentDate())
-                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                    startActivity(intent);
-                                }
+                            FireStoreUserRequest.createUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Helper.setCurrentDate())
+                            .addOnSuccessListener(aVoid -> {
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                startActivity(intent);
                             });
 
                         }
@@ -139,12 +128,7 @@ public class SignInActivity extends AppCompatActivity {
         if(Helper.getSignInValue(getApplicationContext())){
             startSignInActivity();
         }
-        Log.e("SignIn Life cycle", "onResume");
+        Log.d("SignIn Life cycle", "onResume");
     }
-
-
-
-    @Nullable
-    protected FirebaseUser getCurrentUser(){ return FirebaseAuth.getInstance().getCurrentUser(); }
 
 }
