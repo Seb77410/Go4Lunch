@@ -17,7 +17,6 @@ public class Helper {
     }
 
     public static void setSignInValue(Context context , Boolean isSignIn){
-
         SharedPreferences sharedPreferences = context.getSharedPreferences("SignIn", Context.MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("AlreadySignIn", isSignIn);

@@ -95,7 +95,7 @@ public class MainActivity
 
         // References
         navigationView = findViewById(R.id.activity_main_nav_view);
-        mToolbar = findViewById(R.id.activity_main_toolbar);
+        mToolbar = findViewById(R.id.activity_settings_toolbar);
         ConstraintLayout header = (ConstraintLayout) navigationView.getHeaderView(0);
         drawerUserPhoto = header.findViewById(R.id.nav_header_user_photo);
         drawerUserName = header.findViewById(R.id.nav_header_user_name);
@@ -261,6 +261,8 @@ public class MainActivity
                 break;
 
             case R.id.activity_main_drawer_settings :
+                Intent intent1 = new Intent(this, SettingsActivity.class);
+                startActivity(intent1);
                 break;
         }
         this.drawerLayout.closeDrawer(GravityCompat.START);
@@ -309,7 +311,6 @@ public class MainActivity
                             .beginTransaction()
                             .replace(R.id.activity_main_frame_layout, selectedFragment)
                             .commit();
-
                     return true;
             }
             return true;

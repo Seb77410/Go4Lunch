@@ -112,7 +112,7 @@ public class RestaurantDetails extends AppCompatActivity {
                         .set(data, SetOptions.merge())
                         .addOnSuccessListener(aVoid -> {
                         Log.d("Like Button", "Place liked list update");
-                        Toast.makeText(getApplicationContext(), Constants.PLACE_JUST_LIKE, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), getString(R.string.place_just_like), Toast.LENGTH_LONG).show();
                         });
             }
         });
@@ -128,7 +128,7 @@ public class RestaurantDetails extends AppCompatActivity {
                 intent.setData(Uri.parse(phoneNumber));
                 startActivity(intent);
             } else {
-                Toast.makeText(getApplicationContext(), Constants.NO_PHONE_NUMBER, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.no_phone_number), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -144,7 +144,7 @@ public class RestaurantDetails extends AppCompatActivity {
             if (webSite != null) {
                 startActivity(intent);
             } else {
-                Toast.makeText(getApplicationContext(), Constants.NO_WEBSITE, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.no_website), Toast.LENGTH_LONG).show();
             }
         });
     }

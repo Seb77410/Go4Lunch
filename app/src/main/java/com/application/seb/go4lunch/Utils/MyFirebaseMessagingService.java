@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
@@ -16,12 +15,8 @@ import com.application.seb.go4lunch.Model.Restaurant;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -78,13 +73,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private void getUserInfo(){
         FireStoreUserRequest
                 .getUser(FirebaseAuth.getInstance().getUid())
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        user = documentSnapshot.toObject(User.class);
+                .addOnSuccessListener(documentSnapshot -> {
+                    user = documentSnapshot.toObject(User.class);
+                    if(Objects.requireNonNull(user).isAbleNotifications()){
                         getUserSubscribedRestaurant();
-                        Log.e("Notifications", "getUserInfo()");
                     }
+                    Log.e("Notifications", "getUserInfo()");
                 });
     }
 
@@ -94,59 +88,50 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         FireStoreRestaurantRequest
                 .getRestaurantsCollection()
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        Log.e("Notifications", "getUserSubscribedRestaurant() onComplete()");
-                        // For every restaurant : get Subscribers document for current date
-                        for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())){
-                            Restaurant restaurant = document.toObject(Restaurant.class);
-                            FireStoreRestaurantRequest
-                                    .getRestaurantSubscribersCollection(Objects.requireNonNull(restaurant).getId())
-                                    .document(currentDate)
-                                    .get()
-                                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                        @Override
-                                        public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                            Log.e("Notifications", "getUserSubscribedRestaurant() onSuccess() for restaurant Subscribers document");
-                                            SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
-                                            // If the document of current date have a subscribers list wich contains current user :
-                                            if (subscribersCollection != null && subscribersCollection.getSubscribersList().contains(user.getUid())){
-                                                restaurantName = restaurant.getName();
-                                                restaurantAddress = restaurant.getAddress();
-                                                restaurantSubscribersId = subscribersCollection.getSubscribersList();
-                                                restaurantSubscribersId.remove(user.getUid());
-                                                Log.e("Notifications", "Le retau : " + restaurantName + " Son adresse : " + restaurantAddress + " Ses subscribers : " + restaurantSubscribersId);
-                                                // If
-                                                if (restaurantSubscribersId.size()>0){
-                                                for (int x = 0; x < restaurantSubscribersId.size(); x++){
-                                                        int finalX = x;
-                                                        FireStoreUserRequest
-                                                                .getUsersCollection()
-                                                                .document(restaurantSubscribersId.get(x))
-                                                                .get()
-                                                                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                                                    @Override
-                                                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                                                        User user = documentSnapshot.toObject(User.class);
-                                                                        restaurantSubscribersName.add(Objects.requireNonNull(user).getUsername());
-                                                                        if (finalX == restaurantSubscribersId.size()-1){
-                                                                            setNotificationMessage();
-                                                                            showNotification();
-                                                                        }
-                                                                    }
-                                                                });
-                                                    }
-                                                }else{
-                                                    setNotificationMessage();
-                                                    showNotification();
-                                                }
-                                            }else{
-                                                Log.e("Notification", "Not subscribe this restaurant : " + restaurant.getName());
+                .addOnCompleteListener(task -> {
+                    Log.e("Notifications", "getUserSubscribedRestaurant() onComplete()");
+                    // For every restaurant : get Subscribers document for current date
+                    for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())){
+                        Restaurant restaurant = document.toObject(Restaurant.class);
+                        FireStoreRestaurantRequest
+                                .getRestaurantSubscribersCollection(Objects.requireNonNull(restaurant).getId())
+                                .document(currentDate)
+                                .get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    Log.e("Notifications", "getUserSubscribedRestaurant() onSuccess() for restaurant Subscribers document");
+                                    SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+                                    // If the document of current date have a subscribers list wich contains current user :
+                                    if (subscribersCollection != null && subscribersCollection.getSubscribersList().contains(user.getUid())){
+                                        restaurantName = restaurant.getName();
+                                        restaurantAddress = restaurant.getAddress();
+                                        restaurantSubscribersId = subscribersCollection.getSubscribersList();
+                                        restaurantSubscribersId.remove(user.getUid());
+                                        Log.e("Notifications", "Le retau : " + restaurantName + " Son adresse : " + restaurantAddress + " Ses subscribers : " + restaurantSubscribersId);
+                                        // If
+                                        if (restaurantSubscribersId.size()>0){
+                                        for (int x = 0; x < restaurantSubscribersId.size(); x++){
+                                                int finalX = x;
+                                                FireStoreUserRequest
+                                                        .getUsersCollection()
+                                                        .document(restaurantSubscribersId.get(x))
+                                                        .get()
+                                                        .addOnSuccessListener(documentSnapshot1 -> {
+                                                            User user = documentSnapshot1.toObject(User.class);
+                                                            restaurantSubscribersName.add(Objects.requireNonNull(user).getUsername());
+                                                            if (finalX == restaurantSubscribersId.size()-1){
+                                                                setNotificationMessage();
+                                                                showNotification();
+                                                            }
+                                                        });
                                             }
+                                        }else{
+                                            setNotificationMessage();
+                                            showNotification();
                                         }
-                                    });
-                        }
+                                    }else{
+                                        Log.e("Notification", "Not subscribe this restaurant : " + restaurant.getName());
+                                    }
+                                });
                     }
                 });
     }

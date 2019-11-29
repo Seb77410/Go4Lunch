@@ -1,15 +1,9 @@
 <resources>
 
+    <!-- ///////////////////////////////// NOT TRANSLATABLE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ -->
+
     <!-- App name -->
     <string name="app_name" translatable="false">Go4Lunch</string>
-
-    <!-- Toolbar title -->
-    <string name="toolbar_title" translatable="false">I\'m hungry !</string>
-
-    <!-- Bottom view values -->
-    <string name="map_view_title">Map View</string>
-    <string name="list_view_title">List View</string>
-    <string name="workmates_title">Workmates</string>
 
     <!-- Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). -->
     <string name="facebook_application_id" translatable="false">2359644737682345</string>
@@ -19,16 +13,33 @@
     <string name="twitter_consumer_key" translatable="false">SABpYB8vKtQuuJ9Stx7xki3zz</string>
     <string name="twitter_consumer_secret" translatable="false">MLNlbtix6Nw1rFFMBrA5dLF1QH1835Xwf6L0bOH2u9wsLXLHQs</string>
 
+    <!-- Map api key -->
+    <string name="map_key" translatable="false">AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc</string>
+
     <!-- Error message -->
     <string name="fireStore_request_error">FireStore request error</string>
 
     <!-- For drawer menu -->
-    <string name="navigation_drawer_open">Navigation drawer open</string>
-    <string name="navigation_drawer_close">Navigation drawer close</string>
+    <string name="navigation_drawer_open" translatable="false">Navigation drawer open</string>
+    <string name="navigation_drawer_close" translatable="false">Navigation drawer close</string>
 
-    <!-- Map api key -->
-    <string name="map_key" translatable="false">
-        AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc
-    </string>
+    <!-- ////////////////////////////////// TRANSLATABLE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ -->
+
+    <!-- Toolbar title -->
+    <string name="toolbar_title" translatable="true">I\'m hungry !</string>
+
+    <!-- Bottom view values -->
+    <string name="map_view_title" translatable="true">Map View</string>
+    <string name="list_view_title" translatable="true">List View</string>
+    <string name="workmates_title" translatable="true">Workmates</string>
+
+    <!-- Settings Activity -->
+    <string name="able_notification" translatable="true">Able notifications</string>
+
+    <!-- Toast values -->
+    <string name="place_just_like" translatable="true">You just like this restaurant</string>
+    <string name="no_phone_number" translatable="true">This restaurant have no phone number</string>
+    <string name="no_website" translatable="true">This restaurant have not website</string>
+
 
 </resources>

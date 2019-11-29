@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class ListViewFragment extends Fragment {
 
-    GooglePlacesResponse googlePlacesResponse;
+    private GooglePlacesResponse googlePlacesResponse;
     private ListViewAdapter adapter;
     private RecyclerView recyclerView;
     private LatLng userLocation;
