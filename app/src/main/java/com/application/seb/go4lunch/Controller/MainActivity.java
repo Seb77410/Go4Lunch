@@ -3,7 +3,6 @@ package com.application.seb.go4lunch.Controller;
 import androidx.annotation.NonNull;
 
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
-import com.application.seb.go4lunch.BuildConfig;
 import com.application.seb.go4lunch.Fragment.ListViewFragment;
 import com.application.seb.go4lunch.Fragment.MapFragment;
 import com.application.seb.go4lunch.Fragment.WorkmatesFragment;
@@ -15,21 +14,12 @@ import com.application.seb.go4lunch.Utils.Helper;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.RectangularBounds;
-import com.google.android.libraries.places.api.model.TypeFilter;
-import com.google.android.libraries.places.widget.Autocomplete;
-import com.google.android.libraries.places.widget.AutocompleteActivity;
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -50,12 +40,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public class MainActivity
@@ -76,6 +66,12 @@ public class MainActivity
     String userDate;
     Boolean x;
     Activity activity = this;
+    ActionBarDrawerToggle toggle;
+    ConstraintLayout autocompleteLayout;
+    ImageButton autocompleteSearchButton;
+    ImageButton autocompleteSpeakButton;
+    Menu menu;
+    TextView autocompleteText;
 
     // For multidex error
     @Override
@@ -96,6 +92,10 @@ public class MainActivity
         // References
         navigationView = findViewById(R.id.activity_main_nav_view);
         mToolbar = findViewById(R.id.activity_main_toolbar);
+        autocompleteLayout = findViewById(R.id.autocomplete_layout);
+        autocompleteSearchButton= findViewById(R.id.imageButton);
+        autocompleteSpeakButton = findViewById(R.id.imageButton2);
+        autocompleteText = findViewById(R.id.autocomplete_editText);
         ConstraintLayout header = (ConstraintLayout) navigationView.getHeaderView(0);
         drawerUserPhoto = header.findViewById(R.id.nav_header_user_photo);
         drawerUserName = header.findViewById(R.id.nav_header_user_name);
@@ -150,10 +150,6 @@ public class MainActivity
      */
     private void configureToolbar(){
         setSupportActionBar(mToolbar);
-        ActionBar actionbar = getSupportActionBar();
-        if (actionbar != null) {
-            actionbar.setDisplayHomeAsUpEnabled(true);
-        }
     }
 
     /**
@@ -170,7 +166,7 @@ public class MainActivity
                     // Glue drawerLayout to .xml file
                     drawerLayout =  findViewById(R.id.activity_main_drawer_layout);
                     // Glue drawer menu to MainActivity toolbar
-                    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(activity, drawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                    toggle = new ActionBarDrawerToggle(activity, drawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
                     // Add listener to the menu drawer
                     drawerLayout.addDrawerListener(toggle);
                     // Add animation on drawer menu button when Open/close
@@ -330,11 +326,15 @@ public class MainActivity
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
+        inflateSearchMenu(menu);
+        this.menu = menu;
         return true;
     }
 
+    private void inflateSearchMenu(Menu menu){
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+    }
 
     /**This method will allow to manage the clicks on the menu
      * buttons.
@@ -346,45 +346,45 @@ public class MainActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         // Search button ==> Start SearchActivity
         if (item.getItemId() == R.id.search_menu) {
+            hideItem();
+            autocompleteLayout.setVisibility(View.VISIBLE);
+            autocompleteSpeakButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.e("Speak button", "just clicked");
+                    Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                    startActivity(intent);
+                }
+            });
 
-            // Initialize the SDK
-            Places.initialize(getApplicationContext(), BuildConfig.PLACE_API_KEY);
-
-            // Set the fields to specify which types of place data to
-            // return after the user has made a selection.
-            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
-
-            // Start the autocomplete intent.
-            Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
-                    .setLocationRestriction(RectangularBounds.newInstance(
-                            //set the restrict rectangular bounds for search
-                            new com.google.android.gms.maps.model.LatLng(userLocation.longitude + 0.005, userLocation.longitude + 0.005),
-                            new com.google.android.gms.maps.model.LatLng(userLocation.latitude - 0.005, userLocation.longitude - 0.005)
-                            ))
-                    .setTypeFilter(TypeFilter.ESTABLISHMENT)
-                    .build(this);
-            startActivityForResult(intent, Constants.AUTOCOMPLETE_REQUEST_CODE);
+            autocompleteSearchButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.e("Search button", "just click");
+                    clearAutocompleteView();
+                }
+            });
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == Constants.AUTOCOMPLETE_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                //TODO : Mettre à jour les vues ou Afficher les details du restaurant ??
-                Place place = Autocomplete.getPlaceFromIntent(data);
-                Log.e("Autocomplete result", "Place: " + place.getName() + ", " + place.getId());
-            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
-                Status status = Autocomplete.getStatusFromIntent(data);
-                Log.e("Autocomplete result", status.getStatusMessage());
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-        }
+    private void hideItem() {
+        // Remove drawer menu button
+        toggle.setDrawerIndicatorEnabled(false);
+        // Remove search menu
+        menu.clear();
     }
+
+    private void clearAutocompleteView(){
+        // Show drawer menu button
+        toggle.setDrawerIndicatorEnabled(true);
+        // Inflate search button
+        inflateSearchMenu(menu);
+        // Remove autocomplete view
+        autocompleteLayout.setVisibility(View.GONE);
+    }
+
 
     //----------------------------------------------------------------------------------------------
     // Get data from MapFragment
