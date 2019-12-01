@@ -1,14 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
-apply plugin: 'jacoco-android'
-
-jacoco {
-    toolVersion = "0.8.3"
-}
-
-tasks.withType(Test) {
-    jacoco.includeNoLocationClasses = true
-}
 
 android {
     compileSdkVersion 28
