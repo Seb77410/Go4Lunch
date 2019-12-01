@@ -95,7 +95,7 @@ public class MainActivity
 
         // References
         navigationView = findViewById(R.id.activity_main_nav_view);
-        mToolbar = findViewById(R.id.activity_settings_toolbar);
+        mToolbar = findViewById(R.id.activity_main_toolbar);
         ConstraintLayout header = (ConstraintLayout) navigationView.getHeaderView(0);
         drawerUserPhoto = header.findViewById(R.id.nav_header_user_photo);
         drawerUserName = header.findViewById(R.id.nav_header_user_name);

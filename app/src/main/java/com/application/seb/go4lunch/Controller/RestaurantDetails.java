@@ -118,7 +118,7 @@ public class RestaurantDetails extends AppCompatActivity {
         });
     }
 
-    private void setCallButton(GooglePlaceOpeningHoursResponse value) {
+    public void setCallButton(GooglePlaceOpeningHoursResponse value) {
         placeCallButton.setOnClickListener(v -> {
             if (value.getResult().getFormattedPhoneNumber() != null) {
                 Log.d("RestaurantDetails", "setCallButton : place phone number : " + value.getResult().getFormattedPhoneNumber());

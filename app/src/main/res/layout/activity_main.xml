@@ -16,7 +16,7 @@
         >
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/activity_settings_toolbar"
+            android:id="@+id/activity_main_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@+id/activity_main_bottom_navigation"
-            android:layout_below="@+id/activity_settings_toolbar"
+            android:layout_below="@+id/activity_main_toolbar"
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="0dp"
@@ -87,6 +87,7 @@
                 >
 
                 <ImageView
+                    android:id="@+id/drawer_bottom_image_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -95,7 +96,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    />
+                    tools:ignore="ContentDescription" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.navigation.NavigationView>

@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
 import com.application.seb.go4lunch.BuildConfig;
@@ -58,7 +57,6 @@ public class MapFragment extends Fragment implements
 
     // For data
     private GoogleMap mMap;
-    private Marker currentUserLocationMarker;
     private Disposable disposable;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private List<GooglePlacesResponse.Result> placesResponseList;
@@ -122,11 +120,11 @@ public class MapFragment extends Fragment implements
     //----------------------------------------------------------------------------------------------
 
     private void setNearbyPlaceRequestOptions(HashMap<String, String> optionsMap, LatLng lastLocation){
-        optionsMap.put("location", lastLocation.latitude + "," + lastLocation.longitude);
+        optionsMap.put(Constants.LOCATION, lastLocation.latitude + "," + lastLocation.longitude);
         //optionsMap.put("type", "food,restaurant");
-        optionsMap.put("keyword", "restaurant,pizza");
-        optionsMap.put("rankby", "distance");
-        optionsMap.put("key", BuildConfig.PLACE_API_KEY);
+        optionsMap.put(Constants.KEYWORD, Constants.KEYWORD_VALUES);
+        optionsMap.put(Constants.RANK_BY, Constants.RANK_BY_VALUES);
+        optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
     }
 
     private void getNearbyPlaces(LatLng lastLocation){
@@ -139,8 +137,7 @@ public class MapFragment extends Fragment implements
 
                     @Override
                     public void onNext(GooglePlacesResponse value) {
-                        Log.e("Places response", value.toString());
-                        Log.e("Places response", String.valueOf(value.getResults().size()));
+                        Log.d("Places response", String.valueOf(value.getResults().size()));
 
                         //For data
                         placesResponseList = value.getResults();
@@ -182,7 +179,7 @@ public class MapFragment extends Fragment implements
          // Get Restaurant location
         Double lat = value.getResults().get(x).getGeometry().getLocation().getLat();
         Double lng = value.getResults().get(x).getGeometry().getLocation().getLng();
-        Log.e("Result location " , "Latitude = " + lat + " ! Longitutde = " + lng);
+        Log.d("Result location " , "Latitude = " + lat + " ! Longitutde = " + lng);
         // Set marker options
         LatLng latLng = new LatLng(lat, lng);
         MarkerOptions markerOptions = new MarkerOptions();
@@ -224,23 +221,11 @@ public class MapFragment extends Fragment implements
                 .addOnSuccessListener(location -> {
                     // Got last known location. In some rare situations this can be null.
                     if (location != null) {
-                        Log.e("User Location ",  location.getLatitude() +" , " + location.getLongitude());
+                        Log.d("User Location ",  location.getLatitude() +" , " + location.getLongitude());
 
                         // Send user location to MainActivity
                         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                         ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetUserLocation(latLng);
-
-                        // Remove old marker if necessary
-                        if (currentUserLocationMarker != null) {
-                            currentUserLocationMarker.remove();
-                        }
-
-                        // Add marker to User current position
-                        MarkerOptions markerOptions = new MarkerOptions();
-                        markerOptions.position(latLng);
-                        markerOptions.title("It's me");
-                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-                        currentUserLocationMarker = mMap.addMarker(markerOptions);
 
                         // Move camera to current position
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
@@ -264,8 +249,6 @@ public class MapFragment extends Fragment implements
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        Toast.makeText(getContext(), "Le resultat de la requete", Toast.LENGTH_LONG).show();
 
         if (requestCode == Constants.REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -302,7 +285,7 @@ public class MapFragment extends Fragment implements
 
             //Start RestaurantDetails activity with restaurant details as arguments
             Intent intent = new Intent(getActivity(), RestaurantDetails.class);
-            intent.putExtra("PLACE_DETAILS" ,stringPlaceInfos);
+            intent.putExtra(Constants.PLACE_DETAILS ,stringPlaceInfos);
             startActivity(intent);
         }
         return false;

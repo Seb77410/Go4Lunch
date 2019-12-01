@@ -1,18 +1,14 @@
 package com.application.seb.go4lunch.Utils;
 
-public class Constants {
 
-    // FireBase sign in code
-    public static final int RC_SIGN_IN = 13;
+public class Constants {
 
     // For place Autocomplete
     public static final int AUTOCOMPLETE_REQUEST_CODE = 1;
 
-    // Return response from google API
-    public static final String OVER_QUERY_LIMIT = "OVER_QUERY_LIMIT";
-
-    // ACTION_CALL Intent value
-    public static final String TEL = "tel:";
+    //----------------------------------------------------------------------------------------------
+    // Activities arguments values
+    //----------------------------------------------------------------------------------------------
 
     // RestaurantDetails activity Intent arguments values
     public static final String PLACE_DETAILS ="PLACE_DETAILS";
@@ -36,6 +32,12 @@ public class Constants {
     public static final String RESTAURANT_COLLECTION_NAME ="restaurants";
     public static final String SUBSCRIBERS_COLLECTION_NAME ="subscribers";
 
+    //----------------------------------------------------------------------------------------------
+    // FireBase
+    //----------------------------------------------------------------------------------------------
+
+    // FireBase sign in code
+    public static final int RC_SIGN_IN = 13;
 
     //----------------------------------------------------------------------------------------------
     // Google API
@@ -57,6 +59,17 @@ public class Constants {
     public static final String FIELDS_VALUES = "name,website,opening_hours,formatted_phone_number";
     public static final String KEY = "key";
 
+    // Nearby Places API parameters values
+    public static final String LOCATION = "location";
+    public static final String KEYWORD = "keyword";
+    public static final String KEYWORD_VALUES = "restaurant,pizza";
+    public static final String RANK_BY = "rankby";
+    public static final String RANK_BY_VALUES = "distance";
+
+
+    // Return response from google API
+    public static final String OVER_QUERY_LIMIT = "OVER_QUERY_LIMIT";
+
     //----------------------------------------------------------------------------------------------
     // SharedPreferences
     //----------------------------------------------------------------------------------------------
@@ -65,4 +78,17 @@ public class Constants {
     public static final String SUBSCRIBE_PLACE_PREF = "subscribePlace";
     public static final String SUBSCRIBE_PLACE_PREF_VALUE = "place";
 
+    //----------------------------------------------------------------------------------------------
+    // Notifications values
+    //----------------------------------------------------------------------------------------------
+
+    static final String NOTIFICATIONS_TAG = "go4lunch";
+    static final int NOTIFICATIONS_CHANNEL_ID = 3;
+
+    //----------------------------------------------------------------------------------------------
+    // RestaurantDetails activity
+    //----------------------------------------------------------------------------------------------
+
+    // ACTION_CALL Intent value
+    public static final String TEL = "tel:";
 }

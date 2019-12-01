@@ -2,8 +2,6 @@ package com.application.seb.go4lunch.Model;
 
 import androidx.annotation.Nullable;
 
-import com.application.seb.go4lunch.Utils.Helper;
-
 public class User {
 
     private String uid;

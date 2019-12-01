@@ -7,18 +7,13 @@ import androidx.core.content.res.ResourcesCompat;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.print.PageRange;
-import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import java.util.Objects;
 
@@ -63,8 +58,8 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void configureBackStack(){
-        Toolbar mToolBar = findViewById(R.id.activity_settings_toolbar);
-        setSupportActionBar(mToolBar);
+        mToolbar = findViewById(R.id.activity_main_toolbar);
+        setSupportActionBar(mToolbar);
         // Set back stack
         Drawable upArrow = ResourcesCompat.getDrawable(this.getResources(), R.drawable.ic_arrow_back_black_24dp, null);
         ActionBar actionBar = getSupportActionBar();

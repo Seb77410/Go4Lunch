@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragment.WorkmatesFragment">
+    tools:context=".Fragment.WorkmatesFragment"
+    android:id="@+id/main_list_view_workmates"
+    >
 
    <androidx.recyclerview.widget.RecyclerView
        android:id="@+id/workmatesFragment_recyclerView"

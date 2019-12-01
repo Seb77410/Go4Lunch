@@ -2,15 +2,19 @@ package com.application.seb.go4lunch.Utils;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
+import com.application.seb.go4lunch.Controller.SignInActivity;
 import com.application.seb.go4lunch.Model.Restaurant;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.Model.User;
@@ -25,8 +29,7 @@ import java.util.Objects;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
-    private String NOTIFICATIONS_TAG = "go4lunch";
-    private int NOTIFICATIONS_CHANNEL_ID = 3;
+
     private User user;
     private String currentDate = Helper.setCurrentDate();
     private String restaurantName;
@@ -37,7 +40,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
 
     @Override
-    public void onMessageReceived(RemoteMessage remoteMessage) {
+    public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         Log.e("Firebase messaging", "Receive");
         getUserInfo();
     }
@@ -46,26 +49,29 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATIONS_TAG, "Notification", NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.NOTIFICATIONS_TAG, "Notification", NotificationManager.IMPORTANCE_DEFAULT);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.BLUE);
             notificationManager.createNotificationChannel(notificationChannel);
         }
 
-        NotificationCompat.Builder notifBuilder = new NotificationCompat.Builder(this, NOTIFICATIONS_TAG);
+        NotificationCompat.Builder notifBuilder = new NotificationCompat.Builder(this, Constants.NOTIFICATIONS_TAG);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, SignInActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
         notifBuilder
                 .setContentTitle(getString(R.string.app_name))
                 .setSmallIcon(R.drawable.ic_logo_go4lunch)
                 .setAutoCancel(true)
                 .setContentText(body)
                 .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(body));
+                        .bigText(body))
+                .setContentIntent(contentIntent);
 
-        notificationManager.notify(NOTIFICATIONS_TAG,NOTIFICATIONS_CHANNEL_ID, notifBuilder.build());
+        notificationManager.notify(Constants.NOTIFICATIONS_TAG,Constants.NOTIFICATIONS_CHANNEL_ID, notifBuilder.build());
     }
 
     @Override
-    public void onNewToken(String token) {
+    public void onNewToken(@NonNull String token) {
         Log.d("FirebaseMesagingService", "Refreshed token: " + token);
         //sendRegistrationToServer(token);
     }

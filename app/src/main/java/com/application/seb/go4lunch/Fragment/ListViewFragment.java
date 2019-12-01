@@ -8,18 +8,17 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.application.seb.go4lunch.Controller.RestaurantDetails;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
-import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
+import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.Utils.ItemClickSupport;
 import com.application.seb.go4lunch.View.ListViewAdapter;
-import com.application.seb.go4lunch.View.WorkmatesAdapter;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
@@ -32,7 +31,6 @@ import java.util.List;
 public class ListViewFragment extends Fragment {
 
     private GooglePlacesResponse googlePlacesResponse;
-    private ListViewAdapter adapter;
     private RecyclerView recyclerView;
     private LatLng userLocation;
 
@@ -47,8 +45,6 @@ public class ListViewFragment extends Fragment {
         return frag;
     }
 
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -59,7 +55,7 @@ public class ListViewFragment extends Fragment {
             configureRecyclerView(googlePlacesResponse.getResults(), userLocation);
             configureOnClickRecyclerView(recyclerView);
         }else{
-            //TODO : dire ce qu'il serra à faire si l'utilisateur n'est pas géolocaliser
+            Toast.makeText(getContext(), getString(R.string.no_location), Toast.LENGTH_LONG).show();
         }
         return rootView;
     }
@@ -68,11 +64,11 @@ public class ListViewFragment extends Fragment {
     private void configureRecyclerView(List<GooglePlacesResponse.Result> placesList, LatLng userLocation) {
 
         // Create adapter passing the list of users
-        this.adapter = new ListViewAdapter(placesList, userLocation ,Glide.with(this));
+        ListViewAdapter adapter = new ListViewAdapter(placesList, userLocation, Glide.with(this));
         // For recyclerView views not disappear
         recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);
         // Attach the adapter to the recycler view to populate items
-        this.recyclerView.setAdapter(this.adapter);
+        this.recyclerView.setAdapter(adapter);
         // Set layout manager to position the items
         this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
@@ -83,20 +79,17 @@ public class ListViewFragment extends Fragment {
      */
     private void configureOnClickRecyclerView(RecyclerView recyclerView) {
         ItemClickSupport.addTo(recyclerView, R.layout.fragment_list_view_item)
-                .setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
-                    @Override
-                    public void onItemClicked(RecyclerView recyclerView, int mPosition, View v) {
+                .setOnItemClickListener((recyclerView1, mPosition, v) -> {
 
-                        // Set marker place details to string value
-                        GooglePlacesResponse.Result placeInfos = googlePlacesResponse.getResults().get(mPosition);
-                        Gson gson = new Gson();
-                        String stringPlaceInfos = gson.toJson(placeInfos);
+                    // Set marker place details to string value
+                    GooglePlacesResponse.Result placeInfos = googlePlacesResponse.getResults().get(mPosition);
+                    Gson gson = new Gson();
+                    String stringPlaceInfos = gson.toJson(placeInfos);
 
-                        //Start RestaurantDetails activity with restaurant details as arguments
-                        Intent intent = new Intent(getActivity(), RestaurantDetails.class);
-                        intent.putExtra("PLACE_DETAILS" ,stringPlaceInfos);
-                        startActivity(intent);
-                    }
+                    //Start RestaurantDetails activity with restaurant details as arguments
+                    Intent intent = new Intent(getActivity(), RestaurantDetails.class);
+                    intent.putExtra(Constants.PLACE_DETAILS,stringPlaceInfos);
+                    startActivity(intent);
                 });
     }
 

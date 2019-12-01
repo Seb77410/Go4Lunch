@@ -40,6 +40,12 @@
     <string name="place_just_like" translatable="true">You just like this restaurant</string>
     <string name="no_phone_number" translatable="true">This restaurant have no phone number</string>
     <string name="no_website" translatable="true">This restaurant have not website</string>
+    <string name="no_location" translatable="true">Location not working</string>
+
+    <!-- Drawer menu -->
+    <string name="your_lunch" translatable="true">YOUR LUNCH</string>
+    <string name="settings" translatable="true">SETTINGS</string>
+    <string name="logout" translatable="true">LOGOUT</string>
 
 
 </resources>
