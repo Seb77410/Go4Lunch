@@ -48,7 +48,7 @@ public class ActivityMainTest {
         // "MAP VIEW" fragment
         onView(withId(R.id.action_map)).check(matches(isDisplayed()));
         onView(withId(R.id.mainMap)).check(matches(isDisplayed()));
-        onView(isRoot()).perform(waitFor(3000));
+        onView(isRoot()).perform(waitFor());
 
         // "LIST VIEW" fragment
         onView(withId(R.id.action_list)).check(matches(isDisplayed())).perform(click());
@@ -102,28 +102,6 @@ public class ActivityMainTest {
         intended(hasComponent(SignInActivity.class.getName()));
     }
 
-    /**
-     * Perform action of waiting for a specific time.
-     */
-    public static ViewAction waitFor(final long millis) {
-        return new ViewAction() {
-            @Override
-            public Matcher<View> getConstraints() {
-                return isRoot();
-            }
-
-            @Override
-            public String getDescription() {
-                return "Wait for " + millis + " milliseconds.";
-            }
-
-            @Override
-            public void perform(UiController uiController, final View view) {
-                uiController.loopMainThreadForAtLeast(millis);
-            }
-        };
-    }
-
     private void restaurantDetailsTest(){
         onView(withId(R.id.restaurant_details_image)).check(matches(isDisplayed()));
         onView(withId(R.id.restaurant_details_informations_contener)).check(matches(isDisplayed()));
@@ -140,4 +118,28 @@ public class ActivityMainTest {
         onView(withId(R.id.restaurant_details_frameLayout)).check(matches(isDisplayed()));
         onView(withId(R.id.restaurant_details_subscribe_button)).check(matches(isDisplayed()));
     }
+
+    /**
+     * Perform action of waiting for a specific time.
+     */
+    private static ViewAction waitFor() {
+        return new ViewAction() {
+            @Override
+            public Matcher<View> getConstraints() {
+                return isRoot();
+            }
+
+            @Override
+            public String getDescription() {
+                return "Wait for " + (long) 3000 + " milliseconds.";
+            }
+
+            @Override
+            public void perform(UiController uiController, final View view) {
+                uiController.loopMainThreadForAtLeast((long) 3000);
+            }
+        };
+    }
+
+
 }
