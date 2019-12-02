@@ -12,28 +12,23 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
-import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.GooglePlacesStream;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Objects;
 
 import io.reactivex.observers.DisposableObserver;
 
@@ -45,8 +40,8 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
     private TextView placeAddress;
     private TextView placeTimes;
     private TextView placeDistance;
-    private TextView placeSubscribersNembers;
-    private ImageView placeSubsciberImage;
+    private TextView placeSubscriberNumbers;
+    private ImageView placeSubscriberImage;
     private RatingBar placeRatingBar;
     private HashMap<String, String> optionsMap = new HashMap<>();
     private String sOpeningMinute;
@@ -62,8 +57,8 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
         placeAddress = itemView.findViewById(R.id.place_address);
         placeTimes = itemView.findViewById(R.id.place_times);
         placeDistance = itemView.findViewById(R.id.place_distance);
-        placeSubscribersNembers = itemView.findViewById(R.id.place_subscribers_numbers);
-        placeSubsciberImage = itemView.findViewById(R.id.place_subscribers_image);
+        placeSubscriberNumbers = itemView.findViewById(R.id.place_subscribers_numbers);
+        placeSubscriberImage = itemView.findViewById(R.id.place_subscribers_image);
         placeRatingBar = itemView.findViewById(R.id.place_ratingBar);
 
     }
@@ -232,8 +227,8 @@ public class ListViewViewHolder extends RecyclerView.ViewHolder {
                         // Si le document existe
                         if (subscribersCollection != null) {
                             if (subscribersCollection.getSubscribersList().size()>0) {
-                                placeSubsciberImage.setImageResource(R.drawable.ic_person_outline_black_24dp);
-                                placeSubscribersNembers.setText("("+subscribersCollection.getSubscribersList().size()+")");
+                                placeSubscriberImage.setImageResource(R.drawable.ic_person_outline_black_24dp);
+                                placeSubscriberNumbers.setText("("+subscribersCollection.getSubscribersList().size()+")");
                                 Log.e("ListViewHolder", "Le restaurant a " + subscribersCollection.getSubscribersList().size()+ " subscribers");
                             }
 

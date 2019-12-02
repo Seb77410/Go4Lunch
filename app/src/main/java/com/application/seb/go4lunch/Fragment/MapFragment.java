@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import com.application.seb.go4lunch.API.FireStoreRestaurantRequest;
 import com.application.seb.go4lunch.BuildConfig;
 import com.application.seb.go4lunch.Controller.RestaurantDetails;
+import com.application.seb.go4lunch.Model.GooglePlaceDetailsResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.Model.SubscribersCollection;
 import com.application.seb.go4lunch.R;
@@ -38,6 +39,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -50,16 +52,31 @@ public class MapFragment extends Fragment implements
         ,GoogleMap.OnMarkerClickListener
         {
 
-    // Constructor
-    public MapFragment() {
-        // Required empty public constructor
-    }
-
     // For data
     private GoogleMap mMap;
     private Disposable disposable;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private List<GooglePlacesResponse.Result> placesResponseList;
+    private ArrayList<String> autocompletePlacesId;
+
+            // Constructor
+    public MapFragment() {
+        // Required empty public constructor
+    }
+
+    public static MapFragment newInstance(Bundle bundle) {
+        MapFragment fragment = new MapFragment();
+        fragment.setArguments(bundle);
+        return fragment;
+    }
+
+    private void getArgs(){
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            autocompletePlacesId = bundle.getStringArrayList("autocompletePlacesId");
+        }
+
+    }
 
     //----------------------------------------------------------------------------------------------
     // Places list callback for MainActivity
@@ -103,17 +120,33 @@ public class MapFragment extends Fragment implements
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Ask for location permission
+        // Device location not allowed
         if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getContext()), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Ask for location permission
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, Constants.REQUEST_CODE);
-        } else {
-            mMap.setMyLocationEnabled(true);
-            updateUserLocation();
-            mMap.setOnMarkerClickListener(this);
         }
-    }
+        // Device location allowed
+        else {
+            // Get MapFragment arguments
+            getArgs();
+                // If arguments are null : start Nearby places request
+            if (autocompletePlacesId == null){
+                mMap.setMyLocationEnabled(true);
+                updateUserLocation();
+                mMap.setOnMarkerClickListener(this);
+            }
+                // If arguments are not null : add marker on arguments places
+            else {
+                for (int x = 0 ; x < autocompletePlacesId.size(); x++){
+                    executePlaceDetailsRequest(autocompletePlacesId.get(x));
+                    mMap.setMyLocationEnabled(true);
+                }
+            }
 
+        }
+
+    }
 
     //----------------------------------------------------------------------------------------------
     // For Restaurants Location
@@ -155,7 +188,7 @@ public class MapFragment extends Fragment implements
                         }
                     }
                     @Override
-                    public void onError(Throwable e) {}
+                    public void onError(Throwable e) {e.printStackTrace();}
                     @Override
                     public void onComplete() {}
                 });
@@ -221,7 +254,7 @@ public class MapFragment extends Fragment implements
                 .addOnSuccessListener(location -> {
                     // Got last known location. In some rare situations this can be null.
                     if (location != null) {
-                        Log.d("User Location ",  location.getLatitude() +" , " + location.getLongitude());
+                        Log.e("User Location ",  location.getLatitude() +" , " + location.getLongitude());
 
                         // Send user location to MainActivity
                         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -289,6 +322,69 @@ public class MapFragment extends Fragment implements
             startActivity(intent);
         }
         return false;
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Update fragment for Autocomplete search
+    //----------------------------------------------------------------------------------------------
+
+    private void executePlaceDetailsRequest(String placeId) {
+        HashMap<String, String> optionsMap = new HashMap<>();
+        optionsMap.put(Constants.PLACE_ID, placeId);
+        optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
+
+        GooglePlacesStream.streamFetchDetailsRequestTotal(optionsMap)
+                .subscribeWith(new DisposableObserver<GooglePlaceDetailsResponse>() {
+                    @Override
+                    public void onNext(GooglePlaceDetailsResponse value) {
+                        Log.e("Map Fragment", "Places Details Total response ");
+                        addMarkerOnRestaurant(value);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+    }
+
+    private void addMarkerOnRestaurant(GooglePlaceDetailsResponse value ){
+
+        // Get Restaurant location
+        Double lat = value.getResult().getGeometry().getLocation().getLat();
+        Double lng = value.getResult().getGeometry().getLocation().getLng();
+        Log.e("Result search location " , "Latitude = " + lat + " ! Longitutde = " + lng);
+        // Set marker options
+        LatLng latLng = new LatLng(lat, lng);
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title(value.getResult().getName());
+        // Get current date into sting value
+        String currentDate = Helper.setCurrentDate();
+
+        // Verify if restaurant have already at least one subscriber and add marker according response
+        FireStoreRestaurantRequest
+                .getRestaurantSubscribersCollection(value.getResult().getPlaceId())
+                .document(currentDate)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+
+                    if (subscribersCollection != null && subscribersCollection.getSubscribersList().size() > 0) {
+                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
+
+                    }else {
+                        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurants_red));
+                    }
+                    Marker mMarker = mMap.addMarker(markerOptions);
+                    mMarker.setTag(value.getResult().getPlaceId());
+                });
     }
 
     //----------------------------------------------------------------------------------------------

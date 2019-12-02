@@ -19,7 +19,7 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/activity_main_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
@@ -68,6 +68,8 @@
                     app:layout_constraintEnd_toStartOf="@+id/imageButton2"
                     app:layout_constraintStart_toEndOf="@+id/imageButton"
                     app:layout_constraintTop_toTopOf="parent"
+                    android:textColor="@color/black"
+                    android:hint="@string/autocomplete_hint_map_fragment"
                     />
 
                 <ImageButton

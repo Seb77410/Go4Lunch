@@ -3,9 +3,6 @@ package com.application.seb.go4lunch.Utils;
 
 public class Constants {
 
-    // For place Autocomplete
-    public static final int AUTOCOMPLETE_REQUEST_CODE = 1;
-
     //----------------------------------------------------------------------------------------------
     // Activities arguments values
     //----------------------------------------------------------------------------------------------
@@ -15,6 +12,14 @@ public class Constants {
 
     // WebView Activity intent arguments value
     public static final String URL = "url";
+
+    //----------------------------------------------------------------------------------------------
+    // Fragments TAG
+    //----------------------------------------------------------------------------------------------
+
+    public static final String MAP_FRAGMENT_TAG = "MAP_FRAGMENT";
+    public static final String LIST_VIEW_FRAGMENT_TAG = "LIST_VIEW_FRAGMENT";
+    public static final String WORKMATES_FRAGMENT_TAG = "WORKMATES_FRAGMENT";
 
     //----------------------------------------------------------------------------------------------
     // FireStore
@@ -48,6 +53,8 @@ public class Constants {
 
     // Places API service values
     static final String JSON_RETURN_FORMAT = "json";
+    public static final String KEY = "key";
+    public static final String LOCATION = "location";
 
     // Places Photo API values
     public static final String HEAD_LINK = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=";
@@ -57,15 +64,20 @@ public class Constants {
     public static final String PLACE_ID = "place_id";
     public static final String FIELDS = "fields";
     public static final String FIELDS_VALUES = "name,website,opening_hours,formatted_phone_number";
-    public static final String KEY = "key";
 
     // Nearby Places API parameters values
-    public static final String LOCATION = "location";
     public static final String KEYWORD = "keyword";
     public static final String KEYWORD_VALUES = "restaurant,pizza";
     public static final String RANK_BY = "rankby";
     public static final String RANK_BY_VALUES = "distance";
 
+    // Autocomplete Places API parameters values
+    public static final String INPUT = "input";
+    public static final String TYPES = "types";
+    public static final String TYPES_VALUE = "establishment";
+    public static final String RADIUS = "radius";
+    public static final String RADIUS_VALUE = "10000";
+    public static final String STRICTBOUNDS = "strictbounds";
 
     // Return response from google API
     public static final String OVER_QUERY_LIMIT = "OVER_QUERY_LIMIT";

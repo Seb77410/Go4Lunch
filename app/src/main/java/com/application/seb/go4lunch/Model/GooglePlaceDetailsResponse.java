@@ -2,11 +2,47 @@ package com.application.seb.go4lunch.Model;
 
 import java.util.List;
 
-import com.google.android.libraries.places.api.model.AddressComponent;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class GooglePlaceDetailsResponse {
+
+
+    @SerializedName("html_attributions")
+    @Expose
+    private List<Object> htmlAttributions = null;
+    @SerializedName("result")
+    @Expose
+    private Result result;
+    @SerializedName("status")
+    @Expose
+    private String status;
+
+    public List<Object> getHtmlAttributions() {
+        return htmlAttributions;
+    }
+
+    public void setHtmlAttributions(List<Object> htmlAttributions) {
+        this.htmlAttributions = htmlAttributions;
+    }
+
+    public Result getResult() {
+        return result;
+    }
+
+    public void setResult(Result result) {
+        this.result = result;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public class AddressComponent {
 
         @SerializedName("long_name")
         @Expose
@@ -42,40 +78,31 @@ public class GooglePlaceDetailsResponse {
             this.types = types;
         }
 
-    public class Example {
+    }
 
-        @SerializedName("html_attributions")
+    public class Close {
+
+        @SerializedName("day")
         @Expose
-        private List<Object> htmlAttributions = null;
-        @SerializedName("result")
+        private Integer day;
+        @SerializedName("time")
         @Expose
-        private Result result;
-        @SerializedName("status")
-        @Expose
-        private String status;
+        private String time;
 
-        public List<Object> getHtmlAttributions() {
-            return htmlAttributions;
+        public Integer getDay() {
+            return day;
         }
 
-        public void setHtmlAttributions(List<Object> htmlAttributions) {
-            this.htmlAttributions = htmlAttributions;
+        public void setDay(Integer day) {
+            this.day = day;
         }
 
-        public Result getResult() {
-            return result;
+        public String getTime() {
+            return time;
         }
 
-        public void setResult(Result result) {
-            this.result = result;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
+        public void setTime(String time) {
+            this.time = time;
         }
 
     }
@@ -161,6 +188,174 @@ public class GooglePlaceDetailsResponse {
 
     }
 
+    public class Open {
+
+        @SerializedName("day")
+        @Expose
+        private Integer day;
+        @SerializedName("time")
+        @Expose
+        private String time;
+
+        public Integer getDay() {
+            return day;
+        }
+
+        public void setDay(Integer day) {
+            this.day = day;
+        }
+
+        public String getTime() {
+            return time;
+        }
+
+        public void setTime(String time) {
+            this.time = time;
+        }
+
+    }
+
+    public class OpeningHours {
+
+        @SerializedName("open_now")
+        @Expose
+        private Boolean openNow;
+        @SerializedName("periods")
+        @Expose
+        private List<Period> periods = null;
+        @SerializedName("weekday_text")
+        @Expose
+        private List<String> weekdayText = null;
+
+        public Boolean getOpenNow() {
+            return openNow;
+        }
+
+        public void setOpenNow(Boolean openNow) {
+            this.openNow = openNow;
+        }
+
+        public List<Period> getPeriods() {
+            return periods;
+        }
+
+        public void setPeriods(List<Period> periods) {
+            this.periods = periods;
+        }
+
+        public List<String> getWeekdayText() {
+            return weekdayText;
+        }
+
+        public void setWeekdayText(List<String> weekdayText) {
+            this.weekdayText = weekdayText;
+        }
+
+    }
+
+    public class Period {
+
+        @SerializedName("close")
+        @Expose
+        private Close close;
+        @SerializedName("open")
+        @Expose
+        private Open open;
+
+        public Close getClose() {
+            return close;
+        }
+
+        public void setClose(Close close) {
+            this.close = close;
+        }
+
+        public Open getOpen() {
+            return open;
+        }
+
+        public void setOpen(Open open) {
+            this.open = open;
+        }
+
+    }
+
+    public class Photo {
+
+        @SerializedName("height")
+        @Expose
+        private Integer height;
+        @SerializedName("html_attributions")
+        @Expose
+        private List<String> htmlAttributions = null;
+        @SerializedName("photo_reference")
+        @Expose
+        private String photoReference;
+        @SerializedName("width")
+        @Expose
+        private Integer width;
+
+        public Integer getHeight() {
+            return height;
+        }
+
+        public void setHeight(Integer height) {
+            this.height = height;
+        }
+
+        public List<String> getHtmlAttributions() {
+            return htmlAttributions;
+        }
+
+        public void setHtmlAttributions(List<String> htmlAttributions) {
+            this.htmlAttributions = htmlAttributions;
+        }
+
+        public String getPhotoReference() {
+            return photoReference;
+        }
+
+        public void setPhotoReference(String photoReference) {
+            this.photoReference = photoReference;
+        }
+
+        public Integer getWidth() {
+            return width;
+        }
+
+        public void setWidth(Integer width) {
+            this.width = width;
+        }
+
+    }
+
+    public class PlusCode {
+
+        @SerializedName("compound_code")
+        @Expose
+        private String compoundCode;
+        @SerializedName("global_code")
+        @Expose
+        private String globalCode;
+
+        public String getCompoundCode() {
+            return compoundCode;
+        }
+
+        public void setCompoundCode(String compoundCode) {
+            this.compoundCode = compoundCode;
+        }
+
+        public String getGlobalCode() {
+            return globalCode;
+        }
+
+        public void setGlobalCode(String globalCode) {
+            this.globalCode = globalCode;
+        }
+
+    }
+
     public class Result {
 
         @SerializedName("address_components")
@@ -190,24 +385,42 @@ public class GooglePlaceDetailsResponse {
         @SerializedName("name")
         @Expose
         private String name;
+        @SerializedName("opening_hours")
+        @Expose
+        private OpeningHours openingHours;
+        @SerializedName("photos")
+        @Expose
+        private List<Photo> photos = null;
         @SerializedName("place_id")
         @Expose
         private String placeId;
+        @SerializedName("plus_code")
+        @Expose
+        private PlusCode plusCode;
+        @SerializedName("price_level")
+        @Expose
+        private Integer priceLevel;
         @SerializedName("rating")
         @Expose
-        private Double rating;
+        private Integer rating;
         @SerializedName("reference")
         @Expose
         private String reference;
         @SerializedName("reviews")
         @Expose
         private List<Review> reviews = null;
+        @SerializedName("scope")
+        @Expose
+        private String scope;
         @SerializedName("types")
         @Expose
         private List<String> types = null;
         @SerializedName("url")
         @Expose
         private String url;
+        @SerializedName("user_ratings_total")
+        @Expose
+        private Integer userRatingsTotal;
         @SerializedName("utc_offset")
         @Expose
         private Integer utcOffset;
@@ -290,6 +503,22 @@ public class GooglePlaceDetailsResponse {
             this.name = name;
         }
 
+        public OpeningHours getOpeningHours() {
+            return openingHours;
+        }
+
+        public void setOpeningHours(OpeningHours openingHours) {
+            this.openingHours = openingHours;
+        }
+
+        public List<Photo> getPhotos() {
+            return photos;
+        }
+
+        public void setPhotos(List<Photo> photos) {
+            this.photos = photos;
+        }
+
         public String getPlaceId() {
             return placeId;
         }
@@ -298,11 +527,27 @@ public class GooglePlaceDetailsResponse {
             this.placeId = placeId;
         }
 
-        public Double getRating() {
+        public PlusCode getPlusCode() {
+            return plusCode;
+        }
+
+        public void setPlusCode(PlusCode plusCode) {
+            this.plusCode = plusCode;
+        }
+
+        public Integer getPriceLevel() {
+            return priceLevel;
+        }
+
+        public void setPriceLevel(Integer priceLevel) {
+            this.priceLevel = priceLevel;
+        }
+
+        public Integer getRating() {
             return rating;
         }
 
-        public void setRating(Double rating) {
+        public void setRating(Integer rating) {
             this.rating = rating;
         }
 
@@ -322,6 +567,14 @@ public class GooglePlaceDetailsResponse {
             this.reviews = reviews;
         }
 
+        public String getScope() {
+            return scope;
+        }
+
+        public void setScope(String scope) {
+            this.scope = scope;
+        }
+
         public List<String> getTypes() {
             return types;
         }
@@ -336,6 +589,14 @@ public class GooglePlaceDetailsResponse {
 
         public void setUrl(String url) {
             this.url = url;
+        }
+
+        public Integer getUserRatingsTotal() {
+            return userRatingsTotal;
+        }
+
+        public void setUserRatingsTotal(Integer userRatingsTotal) {
+            this.userRatingsTotal = userRatingsTotal;
         }
 
         public Integer getUtcOffset() {

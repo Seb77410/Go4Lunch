@@ -47,5 +47,10 @@
     <string name="settings" translatable="true">SETTINGS</string>
     <string name="logout" translatable="true">LOGOUT</string>
 
+    <!-- Autocomplete hint -->
+    <string name="autocomplete_hint_map_fragment" translatable="true">Search restaurant</string>
+    <string name="autocomplete_hint_list_view_fragment" translatable="true">Search restaurant</string>
+    <string name="autocomplete_hint_workmates_fragment" translatable="true">Search workmates</string>
+
 
 </resources>

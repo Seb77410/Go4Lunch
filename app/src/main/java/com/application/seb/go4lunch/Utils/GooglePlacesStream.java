@@ -2,6 +2,8 @@ package com.application.seb.go4lunch.Utils;
 
 import android.util.Log;
 
+import com.application.seb.go4lunch.Model.AutocompleteResponse;
+import com.application.seb.go4lunch.Model.GooglePlaceDetailsResponse;
 import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 
@@ -19,7 +21,7 @@ public class GooglePlacesStream {
     //----------------------------------------------------------------------------------------------
 
     public static Observable<GooglePlacesResponse> streamFetchQueryRequest(HashMap<String, String> optionsMap) {
-        Log.e("SECTION IN STREAM : ", optionsMap.toString() );
+        Log.e("SECTION IN STREAM : ", "Nearby places " + optionsMap.toString() );
         GooglePlacesService newYorkTimesService = GooglePlacesService.retrofit.create(GooglePlacesService.class);
         return newYorkTimesService.getNearbyRestaurant(optionsMap)
                 .subscribeOn(Schedulers.io())
@@ -32,9 +34,31 @@ public class GooglePlacesStream {
     //----------------------------------------------------------------------------------------------
 
     public static Observable<GooglePlaceOpeningHoursResponse> streamFetchDetailsRequest(HashMap<String, String> optionsMap) {
-        Log.e("SECTION IN STREAM : ", optionsMap.toString() );
+        Log.e("SECTION IN STREAM : ", "Details Request Openning Hour " + optionsMap.toString() );
         GooglePlacesService newYorkTimesService = GooglePlacesService.retrofit2.create(GooglePlacesService.class);
         return newYorkTimesService.getRestaurantDetails(optionsMap)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .timeout(10, TimeUnit.SECONDS);
+    }
+
+    public static Observable<GooglePlaceDetailsResponse> streamFetchDetailsRequestTotal(HashMap<String, String> optionsMap) {
+        Log.e("SECTION IN STREAM : ", "Details Request Total " + optionsMap.toString() );
+        GooglePlacesService newYorkTimesService = GooglePlacesService.retrofit2.create(GooglePlacesService.class);
+        return newYorkTimesService.getRestaurantDetailsTotal(optionsMap)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .timeout(10, TimeUnit.SECONDS);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Observable for place autocomplete api request
+    //----------------------------------------------------------------------------------------------
+
+    public static Observable<AutocompleteResponse> streamFetchAutocomplete(HashMap<String, String> optionsMap) {
+        Log.e("SECTION IN STREAM : ", "Autocomplete " + optionsMap.toString() );
+        GooglePlacesService newYorkTimesService = GooglePlacesService.retrofit4.create(GooglePlacesService.class);
+        return newYorkTimesService.getQueryAutocompleteDetails(optionsMap)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .timeout(10, TimeUnit.SECONDS);

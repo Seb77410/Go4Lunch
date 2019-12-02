@@ -3,22 +3,27 @@ package com.application.seb.go4lunch.Controller;
 import androidx.annotation.NonNull;
 
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
+import com.application.seb.go4lunch.BuildConfig;
 import com.application.seb.go4lunch.Fragment.ListViewFragment;
 import com.application.seb.go4lunch.Fragment.MapFragment;
 import com.application.seb.go4lunch.Fragment.WorkmatesFragment;
+import com.application.seb.go4lunch.Model.AutocompleteResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
+import com.application.seb.go4lunch.Utils.GooglePlacesStream;
 import com.application.seb.go4lunch.Utils.Helper;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
+import com.google.android.gms.auth.account.WorkAccount;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.gson.Gson;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,9 +36,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
 import androidx.multidex.MultiDex;
 
 import android.util.Log;
@@ -41,12 +48,19 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Switch;
+import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
+
+import io.reactivex.observers.DisposableObserver;
 
 public class MainActivity
         extends AppCompatActivity
@@ -71,7 +85,8 @@ public class MainActivity
     ImageButton autocompleteSearchButton;
     ImageButton autocompleteSpeakButton;
     Menu menu;
-    TextView autocompleteText;
+    EditText autocompleteText;
+    ArrayList<String> autocompletePlacesId = new ArrayList<>();
 
     // For multidex error
     @Override
@@ -289,24 +304,27 @@ public class MainActivity
                 case R.id.action_map : selectedFragment = new MapFragment();
                     getSupportFragmentManager()
                             .beginTransaction()
-                            .replace(R.id.activity_main_frame_layout, selectedFragment)
+                            .replace(R.id.activity_main_frame_layout, selectedFragment, Constants.MAP_FRAGMENT_TAG)
                             .commit();
+                    autocompleteText.setHint(R.string.autocomplete_hint_map_fragment);
                     return true;
 
                 case R.id.action_list :
                     selectedFragment = ListViewFragment.newInstance(googlePlacesResponse, userLocation);
                     getSupportFragmentManager()
                             .beginTransaction()
-                            .replace(R.id.activity_main_frame_layout, selectedFragment)
+                            .replace(R.id.activity_main_frame_layout, selectedFragment, Constants.LIST_VIEW_FRAGMENT_TAG)
                             .commit();
+                    autocompleteText.setHint(R.string.autocomplete_hint_list_view_fragment);
                     return true;
 
                 case R.id.action_workmates:
                     selectedFragment = new WorkmatesFragment();
                     getSupportFragmentManager()
                             .beginTransaction()
-                            .replace(R.id.activity_main_frame_layout, selectedFragment)
+                            .replace(R.id.activity_main_frame_layout, selectedFragment, Constants.WORKMATES_FRAGMENT_TAG)
                             .commit();
+                    autocompleteText.setHint(R.string.autocomplete_hint_workmates_fragment);
                     return true;
             }
             return true;
@@ -346,30 +364,66 @@ public class MainActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         // Search button ==> Start SearchActivity
         if (item.getItemId() == R.id.search_menu) {
-            hideItem();
+            hideToolbarItems();
             autocompleteLayout.setVisibility(View.VISIBLE);
-            autocompleteSpeakButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.e("Speak button", "just clicked");
-                    Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-                    startActivity(intent);
-                }
+
+            autocompleteSpeakButton.setOnClickListener(v -> {
+                Log.e("Speak button", "just clicked");
+                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
             });
 
-            autocompleteSearchButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.e("Search button", "just click");
-                    clearAutocompleteView();
-                }
+            autocompleteSearchButton.setOnClickListener(v -> {
+                Log.e("Search button", "just click");
+                startSearchRequest();
             });
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void hideItem() {
+    private void startSearchRequest(){
+        HashMap<String, String> optionsMap = new HashMap<>();
+        optionsMap.put(Constants.INPUT, autocompleteText.getText().toString());
+        optionsMap.put(Constants.TYPES, Constants.TYPES_VALUE);
+        optionsMap.put(Constants.LOCATION,userLocation.latitude+","+userLocation.longitude);
+        optionsMap.put(Constants.RADIUS, Constants.RADIUS_VALUE);
+        optionsMap.put(Constants.STRICTBOUNDS, "");
+        optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
+
+        GooglePlacesStream.streamFetchAutocomplete(optionsMap).subscribeWith(new DisposableObserver<AutocompleteResponse>() {
+            @Override
+            public void onNext(AutocompleteResponse value) {
+
+                // Update toolbar view
+                clearAutocompleteView();
+                // Get places id into ArrayList
+                if (value.getPredictions() != null) {
+                    for (int x = 0; x < value.getPredictions().size(); x++) {
+                        Log.e("Autocomplete response", "Restaurant name is : " + value.getPredictions().get(x).getDescription());
+                        autocompletePlacesId.add(value.getPredictions().get(x).getPlaceId());
+                    }
+                }
+                else{
+                    Log.e("Search Autocomplete", "Request status = " + value.getStatus());
+                }
+                // Update current fragment
+                getCurrentFragment();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
+
+    private void hideToolbarItems() {
         // Remove drawer menu button
         toggle.setDrawerIndicatorEnabled(false);
         // Remove search menu
@@ -385,6 +439,26 @@ public class MainActivity
         autocompleteLayout.setVisibility(View.GONE);
     }
 
+    private void getCurrentFragment(){
+
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.activity_main_frame_layout);
+        Fragment updateFragment;
+        if (currentFragment instanceof MapFragment){
+            // Put places Id search response as arguments into fragment
+            Bundle bundle = new Bundle();
+            bundle.putStringArrayList("autocompletePlacesId", autocompletePlacesId);
+            updateFragment = MapFragment.newInstance(bundle);
+            // Update fragment
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.activity_main_frame_layout, updateFragment, Constants.MAP_FRAGMENT_TAG)
+                    .commit();
+        }
+
+        else if (currentFragment instanceof ListViewFragment){
+            updateFragment = new ListViewFragment();
+        }
+    }
 
     //----------------------------------------------------------------------------------------------
     // Get data from MapFragment
