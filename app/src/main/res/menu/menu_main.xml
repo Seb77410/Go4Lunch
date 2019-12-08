@@ -8,5 +8,5 @@
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_search_white_24dp"
         android:orderInCategory="1"
-        android:title="search_menu" />
+        android:title="@string/toolbar_menu_title" />
 </menu>

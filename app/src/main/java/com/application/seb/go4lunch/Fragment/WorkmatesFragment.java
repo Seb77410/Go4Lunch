@@ -15,12 +15,10 @@ import android.view.ViewGroup;
 import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
-import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.View.WorkmatesAdapter;
 import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentSnapshot;
 
-import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,19 +69,15 @@ public class WorkmatesFragment extends Fragment {
     // ---------------------------------------------------------------------------------------------
 
     private void getFormatUsersList() {
-
-        FireStoreUserRequest
-                .getUsersCollection()
-                .orderBy(Constants.ALREADY_SUBSCRIBE_RESTAURANT, Query.Direction.DESCENDING)
-                .get()
+        // Get user list in order of boolean subscribe restaurant value
+        FireStoreUserRequest.getFormatUsersList()
                 .addOnCompleteListener(task -> {
-
                     for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
                         User user = document.toObject(User.class);
                         UsersList.add(user);
                     }
                     Log.d("Users list", "size = " + UsersList.size());
-
+                    // Update view
                     configureRecyclerView(UsersList);
                     adapter.notifyDataSetChanged();
                 });

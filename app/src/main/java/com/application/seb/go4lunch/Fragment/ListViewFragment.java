@@ -14,34 +14,30 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.application.seb.go4lunch.Controller.RestaurantDetails;
-import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.Utils.ItemClickSupport;
 import com.application.seb.go4lunch.View.ListViewAdapter;
-import com.bumptech.glide.Glide;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.Gson;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class ListViewFragment extends Fragment {
 
-    private GooglePlacesResponse googlePlacesResponse;
     private RecyclerView recyclerView;
-    private LatLng userLocation;
+    private ArrayList<String> nearbyPlacesId;
+    private ListViewAdapter listViewAdapter;
 
     public ListViewFragment() {
         // Required empty public constructor
     }
 
-    public static ListViewFragment newInstance(GooglePlacesResponse googlePlacesResponse, LatLng userLocation){
+    public static ListViewFragment newInstance(ArrayList<String> nearbyPlacesId, ListViewAdapter listViewAdapter){
         ListViewFragment frag = new ListViewFragment();
-        frag.googlePlacesResponse = googlePlacesResponse;
-        frag.userLocation = userLocation;
+        frag.nearbyPlacesId = nearbyPlacesId;
+        frag.listViewAdapter = listViewAdapter;
         return frag;
     }
 
@@ -51,8 +47,8 @@ public class ListViewFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_list_view, container, false);
         recyclerView = rootView.findViewById(R.id.listViewRecyclerView);
 
-        if (googlePlacesResponse != null) {
-            configureRecyclerView(googlePlacesResponse.getResults(), userLocation);
+        if (nearbyPlacesId != null) {
+            configureRecyclerView();
             configureOnClickRecyclerView(recyclerView);
         }else{
             Toast.makeText(getContext(), getString(R.string.no_location), Toast.LENGTH_LONG).show();
@@ -61,14 +57,12 @@ public class ListViewFragment extends Fragment {
     }
 
     // Configure RecyclerView, Adapter, LayoutManager & glue it together
-    private void configureRecyclerView(List<GooglePlacesResponse.Result> placesList, LatLng userLocation) {
+    private void configureRecyclerView() {
 
-        // Create adapter passing the list of users
-        ListViewAdapter adapter = new ListViewAdapter(placesList, userLocation, Glide.with(this));
-        // For recyclerView views not disappear
+        // For recyclerView views not error
         recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);
         // Attach the adapter to the recycler view to populate items
-        this.recyclerView.setAdapter(adapter);
+        this.recyclerView.setAdapter(listViewAdapter);
         // Set layout manager to position the items
         this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
@@ -81,15 +75,11 @@ public class ListViewFragment extends Fragment {
         ItemClickSupport.addTo(recyclerView, R.layout.fragment_list_view_item)
                 .setOnItemClickListener((recyclerView1, mPosition, v) -> {
 
-                    // Set marker place details to string value
-                    GooglePlacesResponse.Result placeInfos = googlePlacesResponse.getResults().get(mPosition);
-                    Gson gson = new Gson();
-                    String stringPlaceInfos = gson.toJson(placeInfos);
-
-                    //Start RestaurantDetails activity with restaurant details as arguments
+                    //Start RestaurantDetails activity with restaurant ID as arguments
                     Intent intent = new Intent(getActivity(), RestaurantDetails.class);
-                    intent.putExtra(Constants.PLACE_DETAILS,stringPlaceInfos);
+                    intent.putExtra(Constants.PLACE_DETAILS, nearbyPlacesId.get(mPosition));
                     startActivity(intent);
+
                 });
     }
 

@@ -4,8 +4,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.google.rpc.Help;
+import com.google.zxing.common.StringUtils;
+
+import java.security.PublicKey;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import io.opencensus.internal.StringUtil;
 
 public class Helper {
 
@@ -28,6 +35,12 @@ public class Helper {
         SharedPreferences sharedPreferences = context.getSharedPreferences("SignIn", Context.MODE_PRIVATE);
         Log.e("Helper", " Life saved SignIn value is " + sharedPreferences.getBoolean("AlreadySignIn", false));
         return sharedPreferences.getBoolean("AlreadySignIn", false);
+    }
+
+    public static Float ratingConverter(Double placeRate){
+        float percentagePlaceRating = (float) ((placeRate*100)/5);
+        float myPlaceRating = (3*percentagePlaceRating)/100;
+        return myPlaceRating;
     }
 
 }

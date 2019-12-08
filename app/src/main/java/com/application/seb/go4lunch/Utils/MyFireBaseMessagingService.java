@@ -27,7 +27,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class MyFirebaseMessagingService extends FirebaseMessagingService {
+public class MyFireBaseMessagingService extends FirebaseMessagingService {
 
 
     private User user;
@@ -41,7 +41,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
-        Log.e("Firebase messaging", "Receive");
+        Log.d("FireBase messaging", "Receive");
         getUserInfo();
     }
 
@@ -91,20 +91,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private void getUserSubscribedRestaurant(){
         Log.e("Notifications", "getUserSubscribedRestaurant()");
         // Get every restaurant
-        FireStoreRestaurantRequest
-                .getRestaurantsCollection()
-                .get()
+        FireStoreRestaurantRequest.getRestaurantsCollection()
                 .addOnCompleteListener(task -> {
                     Log.e("Notifications", "getUserSubscribedRestaurant() onComplete()");
+
                     // For every restaurant : get Subscribers document for current date
                     for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())){
                         Restaurant restaurant = document.toObject(Restaurant.class);
-                        FireStoreRestaurantRequest
-                                .getRestaurantSubscribersCollection(Objects.requireNonNull(restaurant).getId())
-                                .document(currentDate)
-                                .get()
+                        FireStoreRestaurantRequest.getSubscriberList(Objects.requireNonNull(restaurant).getId(), currentDate)
                                 .addOnSuccessListener(documentSnapshot -> {
-                                    Log.e("Notifications", "getUserSubscribedRestaurant() onSuccess() for restaurant Subscribers document");
+                                    Log.d("Notifications", "getUserSubscribedRestaurant() onSuccess() for restaurant Subscribers document");
+
                                     SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
                                     // If the document of current date have a subscribers list wich contains current user :
                                     if (subscribersCollection != null && subscribersCollection.getSubscribersList().contains(user.getUid())){
@@ -112,13 +109,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                                         restaurantAddress = restaurant.getAddress();
                                         restaurantSubscribersId = subscribersCollection.getSubscribersList();
                                         restaurantSubscribersId.remove(user.getUid());
-                                        Log.e("Notifications", "Le retau : " + restaurantName + " Son adresse : " + restaurantAddress + " Ses subscribers : " + restaurantSubscribersId);
+                                        Log.d("Notifications", "Le retau : " + restaurantName + " Son adresse : " + restaurantAddress + " Ses subscribers : " + restaurantSubscribersId);
                                         // If
                                         if (restaurantSubscribersId.size()>0){
                                         for (int x = 0; x < restaurantSubscribersId.size(); x++){
                                                 int finalX = x;
                                                 FireStoreUserRequest
-                                                        .getUsersCollection()
+                                                        .UsersCollection()
                                                         .document(restaurantSubscribersId.get(x))
                                                         .get()
                                                         .addOnSuccessListener(documentSnapshot1 -> {

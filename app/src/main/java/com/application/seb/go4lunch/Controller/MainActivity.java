@@ -8,22 +8,20 @@ import com.application.seb.go4lunch.Fragment.ListViewFragment;
 import com.application.seb.go4lunch.Fragment.MapFragment;
 import com.application.seb.go4lunch.Fragment.WorkmatesFragment;
 import com.application.seb.go4lunch.Model.AutocompleteResponse;
-import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.Utils.Constants;
 import com.application.seb.go4lunch.Utils.GooglePlacesStream;
 import com.application.seb.go4lunch.Utils.Helper;
+import com.application.seb.go4lunch.View.ListViewAdapter;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
-import com.google.android.gms.auth.account.WorkAccount;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.gson.Gson;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,11 +34,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.FragmentManager;
 import androidx.multidex.MultiDex;
 
 import android.util.Log;
@@ -51,8 +47,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Switch;
-import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,7 +64,6 @@ public class MainActivity
     // For data
     Toolbar mToolbar;
     BottomNavigationView bottomNavigationView;
-    GooglePlacesResponse googlePlacesResponse;
     LatLng userLocation;
     DrawerLayout drawerLayout;
     NavigationView navigationView;
@@ -87,6 +80,9 @@ public class MainActivity
     Menu menu;
     EditText autocompleteText;
     ArrayList<String> autocompletePlacesId = new ArrayList<>();
+    ArrayList<String> nearbyPlacesId = new ArrayList<>();
+    ListViewAdapter listViewAdapter;
+
 
     // For multidex error
     @Override
@@ -140,16 +136,11 @@ public class MainActivity
                     userDate = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getCurrentDate();
                     Log.d("SignIn Activity", "User current date is  : " + userDate);
                     if(!currentDate.equals(userDate)){
-                        FireStoreUserRequest
-                                .getUsersCollection()
-                                .get()
+                        FireStoreUserRequest.getUserCollection()
                                 .addOnCompleteListener(task -> {
                                     for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
                                         User user = document.toObject(User.class);
-                                        FireStoreUserRequest
-                                                .getUsersCollection()
-                                                .document(Objects.requireNonNull(user).getUid())
-                                                .update(Constants.CURRENT_DATE, currentDate,Constants.ALREADY_SUBSCRIBE_RESTAURANT,false);
+                                        FireStoreUserRequest.everyDayValuesUpdate(Objects.requireNonNull(user).getUid(), currentDate);
                                     }
                                 });
                     }
@@ -172,9 +163,7 @@ public class MainActivity
      */
     private void configureDrawerLayout(){
         FireStoreUserRequest
-                .getUsersCollection()
-                .document(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
-                .get()
+                .getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
                 .addOnSuccessListener(documentSnapshot -> {
                     x = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getAlreadySubscribeRestaurant();
                     Log.d("User boolean", Constants.ALREADY_SUBSCRIBE_RESTAURANT + "= " +x.toString());
@@ -261,7 +250,7 @@ public class MainActivity
                     startActivity(intent);
                 }
                 else{
-                    Toast.makeText(getApplicationContext(), "No restaurant subscribe", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.no_restaurant_subscribe), Toast.LENGTH_LONG).show();
                 }
                 break;
 
@@ -310,7 +299,8 @@ public class MainActivity
                     return true;
 
                 case R.id.action_list :
-                    selectedFragment = ListViewFragment.newInstance(googlePlacesResponse, userLocation);
+                    listViewAdapter = new ListViewAdapter(nearbyPlacesId, userLocation, Glide.with(getApplicationContext()));
+                    selectedFragment = ListViewFragment.newInstance(nearbyPlacesId, listViewAdapter);
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(R.id.activity_main_frame_layout, selectedFragment, Constants.LIST_VIEW_FRAGMENT_TAG)
@@ -368,13 +358,13 @@ public class MainActivity
             autocompleteLayout.setVisibility(View.VISIBLE);
 
             autocompleteSpeakButton.setOnClickListener(v -> {
-                Log.e("Speak button", "just clicked");
+                Log.d("Speak button", "just clicked");
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                 startActivity(intent);
             });
 
             autocompleteSearchButton.setOnClickListener(v -> {
-                Log.e("Search button", "just click");
+                Log.d("Search button", "just click");
                 startSearchRequest();
             });
             return true;
@@ -397,18 +387,20 @@ public class MainActivity
 
                 // Update toolbar view
                 clearAutocompleteView();
+                // Clear ArrayList
+                autocompletePlacesId.clear();
                 // Get places id into ArrayList
                 if (value.getPredictions() != null) {
                     for (int x = 0; x < value.getPredictions().size(); x++) {
-                        Log.e("Autocomplete response", "Restaurant name is : " + value.getPredictions().get(x).getDescription());
+                        Log.d("Autocomplete response", "Restaurant name is : " + value.getPredictions().get(x).getDescription());
                         autocompletePlacesId.add(value.getPredictions().get(x).getPlaceId());
                     }
                 }
                 else{
-                    Log.e("Search Autocomplete", "Request status = " + value.getStatus());
+                    Log.d("Search Autocomplete", "Request status = " + value.getStatus());
                 }
                 // Update current fragment
-                getCurrentFragment();
+                updateCurrentFragmentView();
             }
 
             @Override
@@ -439,7 +431,7 @@ public class MainActivity
         autocompleteLayout.setVisibility(View.GONE);
     }
 
-    private void getCurrentFragment(){
+    private void updateCurrentFragmentView(){
 
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.activity_main_frame_layout);
         Fragment updateFragment;
@@ -456,7 +448,8 @@ public class MainActivity
         }
 
         else if (currentFragment instanceof ListViewFragment){
-            updateFragment = new ListViewFragment();
+            listViewAdapter.setNearbyPlacesId(autocompletePlacesId);
+            listViewAdapter.notifyDataSetChanged();
         }
     }
 
@@ -465,9 +458,7 @@ public class MainActivity
     //----------------------------------------------------------------------------------------------
 
     @Override
-    public void onFragmentSetGooglePlacesResponse(GooglePlacesResponse googlePlacesResponse) {
-        this.googlePlacesResponse = googlePlacesResponse;
-    }
+    public void onFragmentSetNearbyPlacesId(ArrayList<String> nearbyPlacesId){this.nearbyPlacesId = nearbyPlacesId;}
 
     @Override
     public void onFragmentSetUserLocation(LatLng userLocation) {

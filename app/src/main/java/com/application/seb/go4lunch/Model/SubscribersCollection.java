@@ -7,12 +7,9 @@ public class SubscribersCollection {
     private String currentDate;
     private ArrayList<String> subscribersList;
 
-
-
     // --- CONSTRUCTOR ---
 
-    public SubscribersCollection() {
-    }
+    public SubscribersCollection() {}
 
     public SubscribersCollection(String currentDate, ArrayList<String> subscribersList) {
         this.currentDate = currentDate;

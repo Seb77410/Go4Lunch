@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 
 public class User {
 
+    // --- FOR DATA ---
     private String uid;
     private String username;
     @Nullable

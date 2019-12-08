@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toolbar_title">J\'ai faim</string>
+    <string name="map_view_title">CARTE</string>
+    <string name="list_view_title">LISTE</string>
+    <string name="like_button">LIKE</string>
+    <string name="place_is_close">Fermé</string>
+    <string name="place_is_open">Ouvert</string>
+    <string name="place_just_like">Vous venez de liker ce restaurant</string>
+    <string name="logout">DECONNEXION</string>
+    <string name="no_location">La géolocalisation de fonctionne pas</string>
+    <string name="no_phone_number">Ce restaurant n\'a pas de numéro de télèphone</string>
+    <string name="no_restaurant_subscribe">Vous avez souscrit à aucun restaurant</string>
+    <string name="no_website">Ce restaurant n\'a paas de site internet</string>
+    <string name="settings">PARAMETRES</string>
+    <string name="website_button">SITE WEB</string>
+    <string name="your_lunch">VOTRE REPAS</string>
+    <string name="workmates_title">Collègues</string>
+    <string name="call_button">APPELER</string>
+    <string name="autocomplete_hint_workmates_fragment">Chercher un collègue</string>
+    <string name="autocomplete_hint_map_fragment">Chercher un restaurant</string>
+    <string name="autocomplete_hint_list_view_fragment">Chercher un restaurant</string>
+</resources>

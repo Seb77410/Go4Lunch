@@ -22,17 +22,18 @@ import java.util.ArrayList;
  */
 public class SubscribersFragment extends Fragment {
 
+    // For data
     private ArrayList<String> subscribersList;
     private RecyclerView recyclerView;
 
-    public SubscribersFragment() {
-        // Required empty public constructor
-    }
+    // Constructors
+    public SubscribersFragment() {}
 
     public SubscribersFragment(ArrayList<String> subscribersList) {
         this.subscribersList = subscribersList;
     }
 
+    // Configure view
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -43,7 +44,10 @@ public class SubscribersFragment extends Fragment {
         return view;
     }
 
-    // Configure RecyclerView, Adapter, LayoutManager & glue it together
+
+    /**
+     * Configure RecyclerView, Adapter, LayoutManager & glue it together
+     */
     private void configureRecyclerView() {
 
         // Create adapter passing the list of users

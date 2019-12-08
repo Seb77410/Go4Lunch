@@ -56,14 +56,12 @@ public class Constants {
     public static final String KEY = "key";
     public static final String LOCATION = "location";
 
-    // Places Photo API values
-    public static final String HEAD_LINK = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=";
-    public static final String KEY_PARAMETERS = "&key=";
-
     // Places Details API parameters value
     public static final String PLACE_ID = "place_id";
-    public static final String FIELDS = "fields";
-    public static final String FIELDS_VALUES = "name,website,opening_hours,formatted_phone_number";
+
+    // Places photo API values
+    public static final String BASE_PHOTO_API_REQUEST = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=";
+    public static final String PHOTO_API_KEY_PARAMETERS = "&key=";
 
     // Nearby Places API parameters values
     public static final String KEYWORD = "keyword";
@@ -78,9 +76,6 @@ public class Constants {
     public static final String RADIUS = "radius";
     public static final String RADIUS_VALUE = "10000";
     public static final String STRICTBOUNDS = "strictbounds";
-
-    // Return response from google API
-    public static final String OVER_QUERY_LIMIT = "OVER_QUERY_LIMIT";
 
     //----------------------------------------------------------------------------------------------
     // SharedPreferences

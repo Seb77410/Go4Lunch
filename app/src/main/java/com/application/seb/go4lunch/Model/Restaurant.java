@@ -4,14 +4,11 @@ import java.util.ArrayList;
 
 public class Restaurant {
 
+    // --- FOR DATA ---
     private String name;
     private String id;
     private ArrayList<String> userLikeList;
     private String address;
-
-
-
-
 
     // --- CONSTRUCTOR ---
     public Restaurant() {

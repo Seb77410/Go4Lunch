@@ -97,7 +97,7 @@
             android:id="@+id/restaurant_details_call_textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CALL"
+            android:text="@string/call_button"
             android:textColor="@color/colorPrimary"
             app:layout_constraintBottom_toBottomOf="@+id/restaurant_details_like_textView"
             app:layout_constraintEnd_toEndOf="@+id/restaurant_details_call_imageView"
@@ -116,14 +116,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="1.0"
-            />
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/restaurant_details_like_textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:text="LIKE"
+            android:text="@string/like_button"
             android:textColor="@color/colorPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/restaurant_details_like_image"
@@ -138,13 +138,14 @@
             android:layout_marginStart="80dp"
             app:layout_constraintBottom_toBottomOf="@+id/restaurant_details_like_image"
             app:layout_constraintStart_toEndOf="@+id/restaurant_details_like_image"
-            app:layout_constraintTop_toTopOf="@+id/restaurant_details_like_image" />
+            app:layout_constraintTop_toTopOf="@+id/restaurant_details_like_image"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/restaurant_details_website_textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="WEBSITE"
+            android:text="@string/website_button"
             android:textColor="@color/colorPrimary"
             app:layout_constraintBottom_toBottomOf="@+id/restaurant_details_like_textView"
             app:layout_constraintEnd_toEndOf="@+id/restaurant_details_website_image"

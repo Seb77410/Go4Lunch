@@ -59,7 +59,7 @@ class WorkmatesViewHolder extends RecyclerView.ViewHolder {
         textView.setTypeface(null, Typeface.ITALIC);
 
         FireStoreRestaurantRequest
-                .getRestaurantsCollection()
+                .restaurantsCollection()
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -79,7 +79,7 @@ class WorkmatesViewHolder extends RecyclerView.ViewHolder {
         String currentDate = Helper.setCurrentDate();
             // On prend la liste des subscribers via FireStore
             FireStoreRestaurantRequest
-                    .getRestaurantSubscribersCollection(restaurant.getId())
+                    .restaurantSubscribersCollection(restaurant.getId())
                     .document(currentDate)
                     .get()
                     .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {

@@ -81,7 +81,7 @@ public class SignInActivity extends AppCompatActivity {
                     Log.e("SignIn activity", "Error : Auth cancel");
                     startSignInActivity();
                 } else if (Objects.requireNonNull(response.getError()).getErrorCode() ==  ErrorCodes.NO_NETWORK) {
-                    Log.e("SignIn activity", "Error : internet is OFf");
+                    Log.e("SignIn activity", "Error : internet is OFF");
                     startSignInActivity();
                 } else if (Objects.requireNonNull(response.getError()).getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
                     Log.e("SignIn activity", "Unknown error");
@@ -94,33 +94,30 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void createUser(){
-        FireStoreUserRequest
-                .getUsersCollection()
-                .document(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
-                .get()
+
+        FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
                 .addOnSuccessListener(documentSnapshot -> {
+                    // If user is not yet created, we create user
                     if(!documentSnapshot.exists()){
-                        // We save User infos into FireStore database
+                        // If user have photo
                         if (FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl() != null) {
                             FireStoreUserRequest.createUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).toString(), Helper.setCurrentDate())
                             .addOnSuccessListener(aVoid -> {
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 startActivity(intent);
                             });
-
-                        }else{
+                        }
+                        // If user not have photo
+                        else{
                             FireStoreUserRequest.createUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Helper.setCurrentDate())
                             .addOnSuccessListener(aVoid -> {
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 startActivity(intent);
                             });
-
                         }
                     }
                 });
     }
-
-
 
     @Override
     protected void onResume() {

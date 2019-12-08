@@ -9,11 +9,10 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.widget.Switch;
 
+import com.application.seb.go4lunch.API.FireStoreUserRequest;
 import com.application.seb.go4lunch.Model.User;
 import com.application.seb.go4lunch.R;
-import com.application.seb.go4lunch.Utils.Constants;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
 
@@ -34,15 +33,13 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void setSwitchNotificationsButton(){
 
-        FirebaseFirestore
-                .getInstance()
-                .collection(Constants.USER_COLLECTION_NAME)
-                .document(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
-                .get()
+        FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
                 .addOnSuccessListener(documentSnapshot -> {
-
+                    // Transform response into User instance
                     User user = documentSnapshot.toObject(User.class);
+                    // If user as allowed notification
                     if(Objects.requireNonNull(user).isAbleNotifications()){
+                        // Set notification button "ON"
                         ableNotification.setChecked(true);
                     }
                     updateNotificationsParameters();
@@ -50,11 +47,8 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void updateNotificationsParameters(){
-        ableNotification.setOnCheckedChangeListener((buttonView, isChecked) -> FirebaseFirestore
-                .getInstance()
-                .collection(Constants.USER_COLLECTION_NAME)
-                .document(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
-                .update(Constants.ABLE_NOTIFICATIONS, isChecked));
+        ableNotification.setOnCheckedChangeListener((buttonView, isChecked) ->
+                FireStoreUserRequest.updateUserNotificationsBoolean(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()), isChecked));
     }
 
     private void configureBackStack(){

@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.application.seb.go4lunch.Model.AutocompleteResponse;
 import com.application.seb.go4lunch.Model.GooglePlaceDetailsResponse;
-import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 
 import java.util.HashMap;
@@ -32,15 +31,6 @@ public class GooglePlacesStream {
     //----------------------------------------------------------------------------------------------
     // Observable for place details api request
     //----------------------------------------------------------------------------------------------
-
-    public static Observable<GooglePlaceOpeningHoursResponse> streamFetchDetailsRequest(HashMap<String, String> optionsMap) {
-        Log.e("SECTION IN STREAM : ", "Details Request Openning Hour " + optionsMap.toString() );
-        GooglePlacesService newYorkTimesService = GooglePlacesService.retrofit2.create(GooglePlacesService.class);
-        return newYorkTimesService.getRestaurantDetails(optionsMap)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .timeout(10, TimeUnit.SECONDS);
-    }
 
     public static Observable<GooglePlaceDetailsResponse> streamFetchDetailsRequestTotal(HashMap<String, String> optionsMap) {
         Log.e("SECTION IN STREAM : ", "Details Request Total " + optionsMap.toString() );

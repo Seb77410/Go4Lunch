@@ -37,11 +37,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 
 import io.reactivex.disposables.Disposable;
@@ -56,7 +54,6 @@ public class MapFragment extends Fragment implements
     private GoogleMap mMap;
     private Disposable disposable;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private List<GooglePlacesResponse.Result> placesResponseList;
     private ArrayList<String> autocompletePlacesId;
 
             // Constructor
@@ -83,8 +80,8 @@ public class MapFragment extends Fragment implements
     //----------------------------------------------------------------------------------------------
 
      public interface OnFragmentInteractionListener {
-        void onFragmentSetGooglePlacesResponse(GooglePlacesResponse googlePlacesResponse);
         void onFragmentSetUserLocation(LatLng userLocation);
+        void onFragmentSetNearbyPlacesId (ArrayList<String> nearbyPlacesId);
     }
 
 
@@ -141,6 +138,7 @@ public class MapFragment extends Fragment implements
                 for (int x = 0 ; x < autocompletePlacesId.size(); x++){
                     executePlaceDetailsRequest(autocompletePlacesId.get(x));
                     mMap.setMyLocationEnabled(true);
+                    mMap.setOnMarkerClickListener(this);
                 }
             }
 
@@ -173,7 +171,7 @@ public class MapFragment extends Fragment implements
                         Log.d("Places response", String.valueOf(value.getResults().size()));
 
                         //For data
-                        placesResponseList = value.getResults();
+                        ArrayList<String> nearbyPlacesId = new ArrayList<>();
 
                         if (value.getResults().size() > 0){
                         for (int x = 0; x < value.getResults().size(); x++) {
@@ -182,9 +180,12 @@ public class MapFragment extends Fragment implements
                             addRestaurantToDataBase(x, value);
                             // Add marker on every restaurant
                             addMarkerOnRestaurant(x, value);
-                            // Send GooglePlacesResponse to MainActivity
-                            ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetGooglePlacesResponse(value);
+                            nearbyPlacesId.add(value.getResults().get(x).getPlaceId());
                             }
+                            // Send GooglePlacesResponse to MainActivity
+                            //((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetGooglePlacesResponse(value);
+                            ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetNearbyPlacesId(nearbyPlacesId);
+
                         }
                     }
                     @Override
@@ -197,10 +198,9 @@ public class MapFragment extends Fragment implements
 
 
     private void addRestaurantToDataBase(int x,GooglePlacesResponse value ){
-        FireStoreRestaurantRequest
-                .getRestaurantsCollection()
-                .document(value.getResults().get(x).getPlaceId()).get()
+        FireStoreRestaurantRequest.getRestaurant(value.getResults().get(x).getPlaceId())
                 .addOnCompleteListener(task -> {
+                    // If restaurant not yet created, we create restaurant
                     if (!Objects.requireNonNull(task.getResult()).exists()){
                         FireStoreRestaurantRequest.createRestaurant(value.getResults().get(x).getName(), value.getResults().get(x).getPlaceId(), value.getResults().get(x).getVicinity());
                     }
@@ -222,10 +222,7 @@ public class MapFragment extends Fragment implements
         String currentDate = Helper.setCurrentDate();
 
         // Verify if restaurant have already at least one subscriber and add marker according response
-        FireStoreRestaurantRequest
-                .getRestaurantSubscribersCollection(value.getResults().get(x).getPlaceId())
-                .document(currentDate)
-                .get()
+        FireStoreRestaurantRequest.getSubscriberList(value.getResults().get(x).getPlaceId(), currentDate)
                 .addOnSuccessListener(documentSnapshot -> {
                     SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
 
@@ -236,7 +233,7 @@ public class MapFragment extends Fragment implements
                         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurants_red));
                     }
                     Marker mMarker = mMap.addMarker(markerOptions);
-                    mMarker.setTag(x);
+                    mMarker.setTag(value.getResults().get(x).getPlaceId());
                 });
 
 
@@ -255,14 +252,11 @@ public class MapFragment extends Fragment implements
                     // Got last known location. In some rare situations this can be null.
                     if (location != null) {
                         Log.e("User Location ",  location.getLatitude() +" , " + location.getLongitude());
-
                         // Send user location to MainActivity
                         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                         ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetUserLocation(latLng);
-
                         // Move camera to current position
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-
                         // Search nearby places
                         getNearbyPlaces(latLng);
                     }
@@ -307,18 +301,12 @@ public class MapFragment extends Fragment implements
     public boolean onMarkerClick(Marker marker) {
 
         if (marker.getTag() != null) {
-            // Get marker data
-            int markerTag = (int) marker.getTag();
-            Log.d("Marker arguments", "marker list position is : " + markerTag);
-
-            // Set marker place details to string value
-            GooglePlacesResponse.Result placeInfos = placesResponseList.get(markerTag);
-            Gson gson = new Gson();
-            String stringPlaceInfos = gson.toJson(placeInfos);
+            // Set marker place Id into string value
+            String markerPlaceId = (String) marker.getTag();
 
             //Start RestaurantDetails activity with restaurant details as arguments
             Intent intent = new Intent(getActivity(), RestaurantDetails.class);
-            intent.putExtra(Constants.PLACE_DETAILS ,stringPlaceInfos);
+            intent.putExtra(Constants.PLACE_DETAILS ,markerPlaceId);
             startActivity(intent);
         }
         return false;
@@ -337,7 +325,6 @@ public class MapFragment extends Fragment implements
                 .subscribeWith(new DisposableObserver<GooglePlaceDetailsResponse>() {
                     @Override
                     public void onNext(GooglePlaceDetailsResponse value) {
-                        Log.e("Map Fragment", "Places Details Total response ");
                         addMarkerOnRestaurant(value);
                     }
 
@@ -359,7 +346,7 @@ public class MapFragment extends Fragment implements
         // Get Restaurant location
         Double lat = value.getResult().getGeometry().getLocation().getLat();
         Double lng = value.getResult().getGeometry().getLocation().getLng();
-        Log.e("Result search location " , "Latitude = " + lat + " ! Longitutde = " + lng);
+        Log.d("Result search location " , "Latitude = " + lat + " ! Longitutde = " + lng);
         // Set marker options
         LatLng latLng = new LatLng(lat, lng);
         MarkerOptions markerOptions = new MarkerOptions();
@@ -369,10 +356,7 @@ public class MapFragment extends Fragment implements
         String currentDate = Helper.setCurrentDate();
 
         // Verify if restaurant have already at least one subscriber and add marker according response
-        FireStoreRestaurantRequest
-                .getRestaurantSubscribersCollection(value.getResult().getPlaceId())
-                .document(currentDate)
-                .get()
+        FireStoreRestaurantRequest.getSubscriberList(value.getResult().getPlaceId(), currentDate)
                 .addOnSuccessListener(documentSnapshot -> {
                     SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
 

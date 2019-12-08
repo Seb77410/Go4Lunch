@@ -9,22 +9,23 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 import com.application.seb.go4lunch.R;
 import com.bumptech.glide.RequestManager;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class ListViewAdapter extends RecyclerView.Adapter<ListViewViewHolder> {
 
-   private List<GooglePlacesResponse.Result> placesList;
+    // For data
    private LatLng userLocation;
    private RequestManager glide;
+   private ArrayList<String> nearbyPlacesId;
+   public void setNearbyPlacesId(ArrayList<String> nearbyPlacesId) {this.nearbyPlacesId = nearbyPlacesId;}
 
-
-    public ListViewAdapter(List<GooglePlacesResponse.Result> placesList, LatLng userLocation, RequestManager glide) {
-        this.placesList = placesList;
+   // Constructor
+    public ListViewAdapter(ArrayList<String> nearbyPlacesId, LatLng userLocation, RequestManager glide) {
+        this.nearbyPlacesId = nearbyPlacesId;
         this.userLocation = userLocation;
         this.glide = glide;
     }
@@ -38,25 +39,23 @@ public class ListViewAdapter extends RecyclerView.Adapter<ListViewViewHolder> {
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.fragment_list_view_item, parent, false);
 
-        Log.d("ListViewAdapter ", "Places list : " + placesList.toString());
-
         return new ListViewViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ListViewViewHolder holder, int position) {
-        GooglePlacesResponse.Result place = placesList.get(position);
-        holder.updateWithPlacesList(place, userLocation, glide);
+        String placeId = nearbyPlacesId.get(position);
+        holder.updateWithPlacesList(placeId, userLocation, glide);
     }
 
     @Override
     public int getItemCount() {
-        if (placesList == null) {
+        if (nearbyPlacesId == null) {
             Log.d("ListViewAdapter", "Places list = null");
             return 0;
         } else {
-            Log.d("ListViewAdapter", "Places list size : " + placesList.size());
-            return placesList.size();
+            Log.d("ListViewAdapter", "Places list size : " + nearbyPlacesId.size());
+            return nearbyPlacesId.size();
         }
     }
 }

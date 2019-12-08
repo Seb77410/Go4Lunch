@@ -2,7 +2,6 @@ package com.application.seb.go4lunch.Utils;
 
 import com.application.seb.go4lunch.Model.AutocompleteResponse;
 import com.application.seb.go4lunch.Model.GooglePlaceDetailsResponse;
-import com.application.seb.go4lunch.Model.GooglePlaceOpeningHoursResponse;
 import com.application.seb.go4lunch.Model.GooglePlacesResponse;
 
 import java.util.Map;
@@ -12,7 +11,6 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
-import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
 public interface GooglePlacesService {
@@ -30,13 +28,9 @@ public interface GooglePlacesService {
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .build();
 
-
     //----------------------------------------------------------------------------------------------
     // Google places details request
     //----------------------------------------------------------------------------------------------
-
-    @GET( Constants.JSON_RETURN_FORMAT )
-    Observable<GooglePlaceOpeningHoursResponse> getRestaurantDetails(@QueryMap Map<String, String> optionsMap);
 
     @GET( Constants.JSON_RETURN_FORMAT )
     Observable<GooglePlaceDetailsResponse> getRestaurantDetailsTotal(@QueryMap Map<String, String> optionsMap);
@@ -46,9 +40,6 @@ public interface GooglePlacesService {
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .build();
-
-
-
 
     //----------------------------------------------------------------------------------------------
     // Google places query autocomplete
