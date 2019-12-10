@@ -2,61 +2,52 @@
 
     <!-- ///////////////////////////////// NOT TRANSLATABLE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ -->
 
-    <!-- App name -->
     <string name="app_name" translatable="false">Go4Lunch</string>
-
-    <!-- Toolbar menu title-->
     <string name="toolbar_menu_title" translatable="false">search menu</string>
-
-    <!-- Facebook application ID and custom URL scheme (app ID prefixed by 'fb'). -->
     <string name="facebook_application_id" translatable="false">2359644737682345</string>
     <string name="facebook_login_protocol_scheme" translatable="false">fb2359644737682345</string>
-
-    <!-- Twitter application ID -->
+    <string name="com_facebook_loginview_logged_in_using_facebook_f1gender" translatable="false">hum</string>
     <string name="twitter_consumer_key" translatable="false">SABpYB8vKtQuuJ9Stx7xki3zz</string>
     <string name="twitter_consumer_secret" translatable="false">MLNlbtix6Nw1rFFMBrA5dLF1QH1835Xwf6L0bOH2u9wsLXLHQs</string>
-
-    <!-- Error message -->
     <string name="fireStore_request_error" translatable="false">FireStore request error</string>
-
-    <!-- For drawer menu -->
+    <string name="map_api_key" translatable="false">AIzaSyAp47kmngPnTKz7MY38uHXeJ7JwGoAcvQc</string>
     <string name="navigation_drawer_open" translatable="false">Navigation drawer open</string>
     <string name="navigation_drawer_close" translatable="false">Navigation drawer close</string>
+    <string name="notification_channel" translatable="false">channel</string>
 
     <!-- ////////////////////////////////// TRANSLATABLE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ -->
 
     <!-- Toolbar title -->
     <string name="toolbar_title" translatable="true">I\'m hungry !</string>
-
+    <!-- Activity setting -->
+    <string name="able_notification" translatable="true">Able notification</string>
     <!-- Bottom view values -->
     <string name="map_view_title" translatable="true">Map View</string>
     <string name="list_view_title" translatable="true">List View</string>
     <string name="workmates_title" translatable="true">Workmates</string>
-
     <!-- Toast values -->
     <string name="place_just_like" translatable="true">You just like this restaurant</string>
     <string name="no_phone_number" translatable="true">This restaurant have no phone number</string>
     <string name="no_website" translatable="true">This restaurant have not website</string>
     <string name="no_location" translatable="true">Location not working</string>
     <string name="no_restaurant_subscribe" translatable="true">No restaurant subscribe</string>
-
     <!-- Drawer menu -->
     <string name="your_lunch" translatable="true">YOUR LUNCH</string>
     <string name="settings" translatable="true">SETTINGS</string>
     <string name="logout" translatable="true">LOGOUT</string>
-
     <!-- Autocomplete hint -->
     <string name="autocomplete_hint_map_fragment" translatable="true">Search restaurant</string>
     <string name="autocomplete_hint_list_view_fragment" translatable="true">Search restaurant</string>
     <string name="autocomplete_hint_workmates_fragment" translatable="true">Search workmates</string>
-
     <!-- Restaurant Details button text -->
     <string name="call_button" translatable="true">CALL</string>
     <string name="like_button" translatable="true">LIKE</string>
     <string name="website_button" translatable="true">WEBSITE</string>
-
     <!-- Place is open or close -->
     <string name="place_is_open" translatable="true">Open</string>
     <string name="place_is_close" translatable="true">Close</string>
+    <!-- Workmate list text -->
+    <string name="no_restaurant_select" translatable="true"> hasn\'t decided yet</string>
+    <string name="is_eating" translatable="true"> is eating</string>
 
 </resources>

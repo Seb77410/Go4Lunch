@@ -7,10 +7,10 @@ import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.espresso.intent.rule.IntentsTestRule;
 
-import com.application.seb.go4lunch.Controller.MainActivity;
-import com.application.seb.go4lunch.Controller.RestaurantDetails;
-import com.application.seb.go4lunch.Controller.SettingsActivity;
-import com.application.seb.go4lunch.Controller.SignInActivity;
+import com.application.seb.go4lunch.controller.MainActivity;
+import com.application.seb.go4lunch.controller.RestaurantDetails;
+import com.application.seb.go4lunch.controller.SettingsActivity;
+import com.application.seb.go4lunch.controller.SignInActivity;
 
 import org.hamcrest.Matcher;
 import org.junit.Rule;
