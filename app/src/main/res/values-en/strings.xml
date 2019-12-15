@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="autocomplete_hint_list_view_fragment">Search restaurant</string>
+    <string name="autocomplete_hint_map_fragment">Search restaurant</string>
+    <string name="autocomplete_hint_workmates_fragment">Search workmates</string>
+    <string name="call_button">CALL</string>
+    <string name="is_eating">is eating</string>
+    <string name="like_button">LIKE</string>
+    <string name="list_view_title">List View</string>
+    <string name="logout">LOGOUT</string>
+    <string name="map_view_title">Map View</string>
+    <string name="no_location">Location not working</string>
+    <string name="no_phone_number">This restaurant have no phone number</string>
+    <string name="no_restaurant_select">hasn\'t decided yet</string>
+    <string name="no_restaurant_subscribe">No restaurant subscribe</string>
+    <string name="no_website">This restaurant have not website</string>
+    <string name="place_is_close">Close</string>
+    <string name="place_is_open">Open</string>
+    <string name="place_just_like">You just like this restaurant</string>
+    <string name="settings">SETTINGS</string>
+    <string name="toolbar_title">I\'m hungry !</string>
+    <string name="website_button">WEBSITE</string>
+    <string name="workmates_title">Workmates</string>
+    <string name="your_lunch">YOUR LUNCH</string>
+    <string name="able_notification">Able notification</string>
+</resources>
