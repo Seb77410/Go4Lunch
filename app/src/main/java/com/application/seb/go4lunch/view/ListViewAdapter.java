@@ -23,7 +23,11 @@ public class ListViewAdapter extends RecyclerView.Adapter<ListViewViewHolder> {
    private ArrayList<String> nearbyPlacesId;
    public void setNearbyPlacesId(ArrayList<String> nearbyPlacesId) {this.nearbyPlacesId = nearbyPlacesId;}
 
-   // Constructor
+    public ArrayList<String> getNearbyPlacesId() {
+        return nearbyPlacesId;
+    }
+
+    // Constructor
     public ListViewAdapter(ArrayList<String> nearbyPlacesId, LatLng userLocation, RequestManager glide) {
         this.nearbyPlacesId = nearbyPlacesId;
         this.userLocation = userLocation;

@@ -21,6 +21,7 @@ public class ItemClickSupport {
             }
         }
     };
+
     private View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View v) {
@@ -49,7 +50,7 @@ public class ItemClickSupport {
         }
     };
 
-    private ItemClickSupport(RecyclerView recyclerView, int itemID) {
+    public ItemClickSupport(RecyclerView recyclerView, int itemID) {
         mRecyclerView = recyclerView;
         mItemID = itemID;
         mRecyclerView.setTag(itemID, this);
@@ -96,4 +97,5 @@ public class ItemClickSupport {
 
         boolean onItemLongClicked(RecyclerView recyclerView, int position, View v);
     }
+
 }

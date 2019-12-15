@@ -13,10 +13,9 @@ public class FireStoreUserRequest {
 
     // --- COLLECTION REFERENCE ---
 
-    public static CollectionReference UsersCollection(){
+    private static CollectionReference UsersCollection(){
         return FirebaseFirestore.getInstance().collection(Constants.USER_COLLECTION_NAME);
     }
-
 
     // --- CREATE ---
 
@@ -48,27 +47,17 @@ public class FireStoreUserRequest {
 
     // --- UPDATE ---
 
-    public static Task<Void> updateUsername(String username, String uid) {
-        return FireStoreUserRequest.UsersCollection().document(uid).update("username", username);
-    }
-
-    public static Task<Void>everyDayValuesUpdate(String userId, String currentDate){
-        return FireStoreUserRequest.UsersCollection().document(userId)
+    public static void everyDayValuesUpdate(String userId, String currentDate){
+        FireStoreUserRequest.UsersCollection().document(userId)
                 .update(Constants.CURRENT_DATE, currentDate,Constants.ALREADY_SUBSCRIBE_RESTAURANT,false);
     }
 
-    public static Task<Void> updateUserSubscribeBoolean(String userId){
-    return FireStoreUserRequest.UsersCollection().document(userId).update(Constants.ALREADY_SUBSCRIBE_RESTAURANT, true);
+    public static void updateUserSubscribeBoolean(String userId){
+    FireStoreUserRequest.UsersCollection().document(userId).update(Constants.ALREADY_SUBSCRIBE_RESTAURANT, true);
     }
 
-    public static Task<Void> updateUserNotificationsBoolean(String userId, Boolean isChecked){
-    return FireStoreUserRequest.UsersCollection().document(userId).update(Constants.ABLE_NOTIFICATIONS, isChecked);
+    public static void updateUserNotificationsBoolean(String userId, Boolean isChecked){
+    FireStoreUserRequest.UsersCollection().document(userId).update(Constants.ABLE_NOTIFICATIONS, isChecked);
     }
 
-
-        // --- DELETE ---
-
-    public static Task<Void> deleteUser(String uid) {
-        return FireStoreUserRequest.UsersCollection().document(uid).delete();
-    }
 }

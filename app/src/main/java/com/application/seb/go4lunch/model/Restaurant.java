@@ -4,13 +4,17 @@ import java.util.ArrayList;
 
 public class Restaurant {
 
-    // --- FOR DATA ---
+    //----------------------------------------------------------------------------------------------
+    // For data
+    //----------------------------------------------------------------------------------------------
     private String name;
     private String id;
     private ArrayList<String> userLikeList;
     private String address;
 
-    // --- CONSTRUCTOR ---
+    //----------------------------------------------------------------------------------------------
+    // Constructors
+    //----------------------------------------------------------------------------------------------
     public Restaurant() {
     }
 
@@ -20,15 +24,17 @@ public class Restaurant {
         this.address = address;
     }
 
-    // --- GETTERS ---
+    //----------------------------------------------------------------------------------------------
+    // Getters
+    //----------------------------------------------------------------------------------------------
     public String getName() {return name;}
     public String getId() {return id;}
     public ArrayList<String> getUserLikeList() {return userLikeList;}
     public String getAddress() {return address;}
 
-    // --- SETTERS ---
+    //----------------------------------------------------------------------------------------------
+    // Setters
+    //----------------------------------------------------------------------------------------------
     public void setName(String name) {this.name = name;}
     public void setId(String id) {this.id = id;}
-    public void setUserLikeList(ArrayList<String> userLikeList) {this.userLikeList = userLikeList;}
-    public void setAddress(String address) {this.address = address; }
 }

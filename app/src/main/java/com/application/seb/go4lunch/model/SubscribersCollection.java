@@ -4,11 +4,15 @@ import java.util.ArrayList;
 
 public class SubscribersCollection {
 
+    //----------------------------------------------------------------------------------------------
+    // For dat
+    //----------------------------------------------------------------------------------------------
     private String currentDate;
     private ArrayList<String> subscribersList;
 
-    // --- CONSTRUCTOR ---
-
+    //----------------------------------------------------------------------------------------------
+    // Constructors
+    //----------------------------------------------------------------------------------------------
     public SubscribersCollection() {}
 
     public SubscribersCollection(String currentDate, ArrayList<String> subscribersList) {
@@ -17,7 +21,9 @@ public class SubscribersCollection {
     }
 
 
-    // --- GETTERS ---
+    //----------------------------------------------------------------------------------------------
+    // Getters
+    //----------------------------------------------------------------------------------------------
     public String getCurrentDate() {
         return currentDate;
     }
@@ -25,9 +31,10 @@ public class SubscribersCollection {
         return subscribersList;
     }
 
-    // --- SETTERS ---
+    //----------------------------------------------------------------------------------------------
+    // Setters
+    //----------------------------------------------------------------------------------------------
     public void setCurrentDate(String currentDate) {
         this.currentDate = currentDate;
     }
-    public void setSubscribersList(ArrayList<String> subscribersList) { this.subscribersList = subscribersList; }
 }

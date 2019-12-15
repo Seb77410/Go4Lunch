@@ -44,7 +44,7 @@ public class ActivityMainTest {
     @Test
     public void bottomViewTest(){
         onView(withId(R.id.activity_main_bottom_navigation)).check(matches(isDisplayed()));
-
+        onView(isRoot()).perform(waitFor());
         // "MAP VIEW" fragment
         onView(withId(R.id.action_map)).check(matches(isDisplayed()));
         onView(withId(R.id.mainMap)).check(matches(isDisplayed()));
@@ -53,12 +53,7 @@ public class ActivityMainTest {
         // "LIST VIEW" fragment
         onView(withId(R.id.action_list)).check(matches(isDisplayed())).perform(click());
         onView(withId(R.id.main_list_view_fragment)).check(matches(isDisplayed()));
-        onView(withId(R.id.listViewRecyclerView)).check(matches(isDisplayed())).perform(click());
-            // Click on item recycler view
-        onView(withId(R.id.listViewRecyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition(1, click()));
-        intended(hasComponent(RestaurantDetails.class.getName()));
-        restaurantDetailsTest();
-        onView(isRoot()).perform(pressBack());
+        onView(isRoot()).perform(waitFor());
 
         // "WORKMATES" fragment
         onView(withId(R.id.action_workmates)).check(matches(isDisplayed())).perform(click());
@@ -67,11 +62,13 @@ public class ActivityMainTest {
     }
 
 
+    // User must have selected a restaurant
     @Test
     public void drawerLayoutTest(){
         // Open drawer menu
         onView(withId(R.id.activity_main_drawer_layout)).perform(open());
         onView(withId(R.id.drawer_bottom_image_view)).check(matches(isDisplayed()));
+        onView(isRoot()).perform(waitFor());
 
         // Navigation view header
         onView(withId(R.id.drawer_navigation_header)).check(matches(isDisplayed()));
@@ -103,6 +100,7 @@ public class ActivityMainTest {
     }
 
     private void restaurantDetailsTest(){
+        onView(isRoot()).perform(waitFor());
         onView(withId(R.id.restaurant_details_image)).check(matches(isDisplayed()));
         onView(withId(R.id.restaurant_details_informations_contener)).check(matches(isDisplayed()));
         onView(withId(R.id.restaurant_details_name)).check(matches(isDisplayed()));

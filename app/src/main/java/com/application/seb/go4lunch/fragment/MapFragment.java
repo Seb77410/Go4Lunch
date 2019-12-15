@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,13 +50,17 @@ public class MapFragment extends Fragment implements
         ,GoogleMap.OnMarkerClickListener
         {
 
+    //----------------------------------------------------------------------------------------------
     // For data
+    //----------------------------------------------------------------------------------------------
     private GoogleMap mMap;
     private Disposable disposable;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private ArrayList<String> autocompletePlacesId;
 
-            // Constructor
+    //----------------------------------------------------------------------------------------------
+    // Constructor
+    //----------------------------------------------------------------------------------------------
     public MapFragment() {
         // Required empty public constructor
     }
@@ -68,18 +71,9 @@ public class MapFragment extends Fragment implements
         return fragment;
     }
 
-    private void getArgs(){
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            autocompletePlacesId = bundle.getStringArrayList("autocompletePlacesId");
-        }
-
-    }
-
     //----------------------------------------------------------------------------------------------
-    // Places list callback for MainActivity
+    // Data listeners for MainActivity
     //----------------------------------------------------------------------------------------------
-
      public interface OnFragmentInteractionListener {
         void onFragmentSetUserLocation(LatLng userLocation);
         void onFragmentSetNearbyPlacesId (ArrayList<String> nearbyPlacesId);
@@ -89,7 +83,6 @@ public class MapFragment extends Fragment implements
     //----------------------------------------------------------------------------------------------
     // On Create
     //----------------------------------------------------------------------------------------------
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -109,6 +102,21 @@ public class MapFragment extends Fragment implements
         return rootView;
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Get Fragment arguments
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * This method get Fragment arguments. This arguments correspond to places Id has response for
+     * toolbar search
+     */
+    private void getArgs(){
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            autocompletePlacesId = bundle.getStringArrayList("autocompletePlacesId");
+        }
+
+    }
 
     //----------------------------------------------------------------------------------------------
     // For Location
@@ -144,13 +152,17 @@ public class MapFragment extends Fragment implements
             }
 
         }
-
     }
 
     //----------------------------------------------------------------------------------------------
     // For Restaurants Location
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * This method configure google nearby places service options
+     * @param optionsMap is a HashMap that contains fields and values for service
+     * @param lastLocation is user location (necessary to start service)
+     */
     private void setNearbyPlaceRequestOptions(HashMap<String, String> optionsMap, LatLng lastLocation){
         optionsMap.put(Constants.LOCATION, lastLocation.latitude + "," + lastLocation.longitude);
         //optionsMap.put("type", "food,restaurant");
@@ -159,34 +171,32 @@ public class MapFragment extends Fragment implements
         optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
     }
 
+    /**
+     * This method execute google nearby places service,add marker on every places as response,
+     * send every Ids to mainActivity, and save every places to FireStore database
+     * @param lastLocation is user location (necessary to start service)
+     */
     private void getNearbyPlaces(LatLng lastLocation){
-
+        // Set options map service
         HashMap<String, String> optionsMap = new HashMap<>();
         setNearbyPlaceRequestOptions(optionsMap, lastLocation);
-
+        // Get nearby places
         disposable = GooglePlacesStream.streamFetchQueryRequest(optionsMap)
                 .subscribeWith(new DisposableObserver<GooglePlacesResponse>(){
-
                     @Override
                     public void onNext(GooglePlacesResponse value) {
                         Log.d("Places response", String.valueOf(value.getResults().size()));
-
-                        //For data
                         ArrayList<String> nearbyPlacesId = new ArrayList<>();
-
                         if (value.getResults().size() > 0){
                         for (int x = 0; x < value.getResults().size(); x++) {
-
                             // Add restaurant to DataBase
                             addRestaurantToDataBase(x, value);
                             // Add marker on every restaurant
                             addMarkerOnRestaurant(x, value);
                             nearbyPlacesId.add(value.getResults().get(x).getPlaceId());
                             }
-                            // Send GooglePlacesResponse to MainActivity
-                            //((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetGooglePlacesResponse(value);
+                            // Send nearby places id to MainActivity
                             ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetNearbyPlacesId(nearbyPlacesId);
-
                         }
                     }
                     @Override
@@ -196,8 +206,11 @@ public class MapFragment extends Fragment implements
                 });
     }
 
-
-
+    /**
+     * This method add restaurant to FireStore databas
+     * @param x is response index for this place
+     * @param value is GooglePlacesResponse instance
+     */
     private void addRestaurantToDataBase(int x,GooglePlacesResponse value ){
         FireStoreRestaurantRequest.getRestaurant(value.getResults().get(x).getPlaceId())
                 .addOnCompleteListener(task -> {
@@ -208,14 +221,19 @@ public class MapFragment extends Fragment implements
                 });
     }
 
+    /**
+     * This method add marker on every places that contains google nearby places service response.
+     * Marker color is green if any user already subscribe a place. Else marker is red
+     * @param x is google nearby places response index
+     * @param value is GooglePlacesResponse instance
+     */
     private void addMarkerOnRestaurant(int x,GooglePlacesResponse value ){
-
-         // Get Restaurant location
+        // Get Restaurant location into LatLng instance
         Double lat = value.getResults().get(x).getGeometry().getLocation().getLat();
         Double lng = value.getResults().get(x).getGeometry().getLocation().getLng();
+        LatLng latLng = new LatLng(lat, lng);
         Log.d("Result location " , "Latitude = " + lat + " ! Longitutde = " + lng);
         // Set marker options
-        LatLng latLng = new LatLng(lat, lng);
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         markerOptions.title(value.getResults().get(x).getName());
@@ -236,10 +254,8 @@ public class MapFragment extends Fragment implements
                     Marker mMarker = mMap.addMarker(markerOptions);
                     mMarker.setTag(value.getResults().get(x).getPlaceId());
                 });
-
-
-
     }
+
     //----------------------------------------------------------------------------------------------
     // Get User location
     // ---------------------------------------------------------------------------------------------
@@ -254,7 +270,8 @@ public class MapFragment extends Fragment implements
                     if (location != null) {
                         Log.e("User Location ",  location.getLatitude() +" , " + location.getLongitude());
                         // Send user location to MainActivity
-                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        LatLng latLng = new LatLng(48.848071, 2.395671);
                         ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetUserLocation(latLng);
                         // Move camera to current position
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
@@ -304,7 +321,6 @@ public class MapFragment extends Fragment implements
         if (marker.getTag() != null) {
             // Set marker place Id into string value
             String markerPlaceId = (String) marker.getTag();
-
             //Start RestaurantDetails activity with restaurant details as arguments
             Intent intent = new Intent(getActivity(), RestaurantDetails.class);
             intent.putExtra(Constants.PLACE_DETAILS ,markerPlaceId);
@@ -317,6 +333,11 @@ public class MapFragment extends Fragment implements
     // Update fragment for Autocomplete search
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * This method execute google place details service for specific place and add marker
+     * to this place location.
+     * @param placeId is the Id from place that we want to execute google place details service
+     */
     private void executePlaceDetailsRequest(String placeId) {
         HashMap<String, String> optionsMap = new HashMap<>();
         optionsMap.put(Constants.PLACE_ID, placeId);
@@ -325,45 +346,42 @@ public class MapFragment extends Fragment implements
         GooglePlacesStream.streamFetchDetailsRequestTotal(optionsMap)
                 .subscribeWith(new DisposableObserver<GooglePlaceDetailsResponse>() {
                     @Override
-                    public void onNext(GooglePlaceDetailsResponse value) {
-                        addMarkerOnRestaurant(value);
-                    }
-
+                    public void onNext(GooglePlaceDetailsResponse value) {addMarkerOnRestaurant(value);}
                     @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
-
+                    public void onError(Throwable e) {e.printStackTrace();}
                     @Override
-                    public void onComplete() {
-
-                    }
+                    public void onComplete() {}
                 });
 
     }
 
+    /**
+     *This method add marker on every places that contains google nearby places service response.
+     *Marker color is green if any user already subscribe a place. Else marker is red
+     * @param value is the google nearby places service response
+     */
     private void addMarkerOnRestaurant(GooglePlaceDetailsResponse value ){
 
-        // Get Restaurant location
+        // Get Restaurant location into LatLng instance
         Double lat = value.getResult().getGeometry().getLocation().getLat();
         Double lng = value.getResult().getGeometry().getLocation().getLng();
+        LatLng latLng = new LatLng(lat, lng);
         Log.d("Result search location " , "Latitude = " + lat + " ! Longitutde = " + lng);
         // Set marker options
-        LatLng latLng = new LatLng(lat, lng);
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         markerOptions.title(value.getResult().getName());
         // Get current date into sting value
         String currentDate = Helper.setCurrentDate(Calendar.getInstance());
 
+        // Zoom camera on user location
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
         // Verify if restaurant have already at least one subscriber and add marker according response
         FireStoreRestaurantRequest.getSubscriberList(value.getResult().getPlaceId(), currentDate)
                 .addOnSuccessListener(documentSnapshot -> {
                     SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
-
                     if (subscribersCollection != null && subscribersCollection.getSubscribersList().size() > 0) {
                         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant_green));
-
                     }else {
                         markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurants_red));
                     }
@@ -377,19 +395,8 @@ public class MapFragment extends Fragment implements
     //----------------------------------------------------------------------------------------------
 
     public void onDestroyView() {
-
+        // Remove disposable
         if (this.disposable != null && !this.disposable.isDisposed()) this.disposable.dispose();
-
-        try {
-            Fragment fragment = (getChildFragmentManager().findFragmentById(R.id.mainMap));
-            if (fragment != null) {
-                FragmentTransaction ft = Objects.requireNonNull(getActivity()).getSupportFragmentManager().beginTransaction();
-                ft.remove(fragment);
-                ft.commit();
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
         super.onDestroyView();
     }
 }

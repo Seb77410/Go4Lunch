@@ -32,7 +32,6 @@ class WorkmatesViewHolder extends RecyclerView.ViewHolder {
     private SubscribersCollection subscribersCollection;
     private String subscribeRestaurant;
 
-
     WorkmatesViewHolder(@NonNull View itemView) {
         super(itemView);
         this.itemView = itemView;
@@ -48,7 +47,7 @@ class WorkmatesViewHolder extends RecyclerView.ViewHolder {
 
     // Get restaurant collection list from FireStore
     private void getRestaurantCollectionList(User user) {
-        textView.setText(user.getUsername() + R.string.no_restaurant_select);
+        textView.setText(user.getUsername() + itemView.getContext().getString(R.string.no_restaurant_select));
         textView.setTextColor(ContextCompat.getColor( itemView.getContext(),R.color.grey));
         textView.setTypeface(null, Typeface.ITALIC);
 
@@ -79,7 +78,7 @@ class WorkmatesViewHolder extends RecyclerView.ViewHolder {
                             subscribeRestaurant = restaurant.getName();
                         }
                         if (subscribeRestaurant != null){
-                            textView.setText(user.getUsername() + R.string.is_eating +"(" +subscribeRestaurant + ")");
+                            textView.setText(user.getUsername() +itemView.getContext().getString(R.string.is_eating) +"(" +subscribeRestaurant + ")");
                             textView.setTypeface(null, Typeface.NORMAL);
                             textView.setTextColor(Color.BLACK);
                         }

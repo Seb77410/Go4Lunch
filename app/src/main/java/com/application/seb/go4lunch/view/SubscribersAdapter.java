@@ -18,6 +18,10 @@ public class SubscribersAdapter extends RecyclerView.Adapter<SubscribersViewHold
     private RequestManager glide;
     private ArrayList<String> subscribersList;
 
+    public ArrayList<String> getSubscribersList() {
+        return subscribersList;
+    }
+
     public SubscribersAdapter(RequestManager glide, ArrayList<String> subscribersList) {
         this.glide = glide;
         this.subscribersList = subscribersList;

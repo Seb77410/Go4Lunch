@@ -4,7 +4,9 @@ import androidx.annotation.Nullable;
 
 public class User {
 
-    // --- FOR DATA ---
+    //----------------------------------------------------------------------------------------------
+    // For data
+    //----------------------------------------------------------------------------------------------
     private String uid;
     private String username;
     @Nullable
@@ -13,7 +15,9 @@ public class User {
     private String currentDate;
     private boolean ableNotifications = true;
 
-    // --- CONSTRUCTOR ---
+    //----------------------------------------------------------------------------------------------
+    // Constructors
+    //----------------------------------------------------------------------------------------------
     public User() { }
 
     public User(String uid, String username, String urlPicture, String currentDate) {
@@ -28,8 +32,9 @@ public class User {
         this.username = username;
         this.currentDate = currentDate;
     }
-
-    // --- GETTERS ---
+    //----------------------------------------------------------------------------------------------
+    // Getters
+    //----------------------------------------------------------------------------------------------
     public String getUid() { return uid; }
     public String getUsername() { return username; }
     public String getUrlPicture() { return urlPicture; }
@@ -37,11 +42,8 @@ public class User {
     public String getCurrentDate() {return currentDate;}
     public boolean isAbleNotifications() {return ableNotifications;}
 
-    // --- SETTERS ---
-    public void setUsername(String username) { this.username = username; }
-    public void setUid(String uid) { this.uid = uid; }
-    public void setUrlPicture(String urlPicture) { this.urlPicture = urlPicture; }
-    public void setAlreadySubscribeRestaurant(Boolean alreadySubscribeRestaurant) {this.alreadySubscribeRestaurant = alreadySubscribeRestaurant;}
+    //----------------------------------------------------------------------------------------------
+    // USetters
+    //----------------------------------------------------------------------------------------------
     public void setCurrentDate(String currentDate) {this.currentDate = currentDate;}
-    public void setAbleNotifications(boolean ableNotifications) {this.ableNotifications = ableNotifications;}
 }

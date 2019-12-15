@@ -40,6 +40,9 @@ import io.reactivex.observers.DisposableObserver;
 
 public class RestaurantDetails extends AppCompatActivity {
 
+    //----------------------------------------------------------------------------------------------
+    // For data
+    //----------------------------------------------------------------------------------------------
     FloatingActionButton subscribeButton;
     ImageView placeImage;
     TextView placeName;
@@ -83,23 +86,31 @@ public class RestaurantDetails extends AppCompatActivity {
     // Showing restaurant details on UI
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * This method get activity argument into String value
+     */
     private void getActivityArgs() {
         Intent intent = getIntent();
         placeId = intent.getStringExtra(Constants.PLACE_DETAILS);
         Log.d("RestaurantDetails", "Activity args : " + placeId);
     }
 
+    /**
+     * This method execute a google place details request as parameters the place id which
+     * is into activity arguments. When result is receive, the view is update according result
+     */
     private void getPlaceDetails(){
-
+        // Places details request options
         HashMap<String, String> optionsMap = new HashMap<>();
         optionsMap.put(Constants.PLACE_ID, placeId);
         optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
-
+        //Start place details request
         GooglePlacesStream.streamFetchDetailsRequestTotal(optionsMap)
                 .subscribeWith(new DisposableObserver<GooglePlaceDetailsResponse>() {
                     @Override
                     public void onNext(GooglePlaceDetailsResponse value) {
                         Log.d("Map Fragment", "Le restau : " + value.getResult().getName());
+                        // Update view
                         placeName.setText(value.getResult().getName());
                         placeAddress.setText(value.getResult().getVicinity());
                         getPlaceLikedList();
@@ -109,25 +120,22 @@ public class RestaurantDetails extends AppCompatActivity {
                         setPlaceRatingBar(value);
                         setCallButton(value);
                         setWebSiteButton(value);
-
                     }
 
                     @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
-
+                    public void onError(Throwable e) {e.printStackTrace();}
                     @Override
-                    public void onComplete() {
-
-                    }
+                    public void onComplete() {}
                 });
-
     }
+
     //--------------------------------------------
     // For Place Like Button
     //--------------------------------------------
 
+    /**
+     * This method get current place liked list with Restaurant collection into FireStore
+     */
     private void getPlaceLikedList(){
         // Get current restaurant
         FireStoreRestaurantRequest
@@ -149,6 +157,9 @@ public class RestaurantDetails extends AppCompatActivity {
                 });
     }
 
+    /**
+     * This method update current place liked list into FireStore
+     */
     private void setPlaceLikeButton() {
         placeLikeButton.setOnClickListener(v -> {
             Log.d("Like Button", "onClick ! ");
@@ -172,6 +183,9 @@ public class RestaurantDetails extends AppCompatActivity {
     // For Place SubscribersList
     //--------------------------------------------
 
+    /**
+     * This method get current place subscribers list with Restaurant collection into FireStore
+     */
     private void getRestaurantSubscribersList(){
         // Execute fireStore request
         FireStoreRestaurantRequest.getSubscriberList(placeId, currentDate)
@@ -195,6 +209,9 @@ public class RestaurantDetails extends AppCompatActivity {
     }
 
 
+    /**
+     * This method add a recycler view, with subscribers list as parameters, on current view
+     */
     private void startSubscribersRecyclerView(){
         getSupportFragmentManager()
                 .beginTransaction()
@@ -206,21 +223,26 @@ public class RestaurantDetails extends AppCompatActivity {
     // For Floating Button
     //--------------------------------------------
 
+    /**
+     * This method configure current FloatingButton view
+     */
     private void setFloatingButton(){
-
+        // Get current FireStore user document
         FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
                 .addOnSuccessListener(documentSnapshot -> {
                     // Transform response into User instance
                     User user = documentSnapshot.toObject(User.class);
                     // If user is not null
-                    if (user != null) {
-                        // Configure floating button
-                        onFloatingButtonClick(user);
-                    }
+                    if (user != null) {onFloatingButtonClick(user);} // Configure floating button
                 });
-
     }
 
+    /**
+     * This method configure FloatingButton click :
+     *  - if user already subscribed a restaurant : Floating button is not clickable
+     *  - else : Floating button is clickable. And when user click : update values on FireStore
+     * @param user is current FireStore user document
+     */
     private void onFloatingButtonClick(User user) {
 
         // If user already subscribed any restaurant
@@ -235,7 +257,6 @@ public class RestaurantDetails extends AppCompatActivity {
             subscribeButton.setClickable(true);
             // When user click on FloatingButton
             subscribeButton.setOnClickListener(v -> {
-
                 // Modify floating button view
                 Log.d("RestaurantDetails", "User just click on Floating button");
                 subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
@@ -243,17 +264,14 @@ public class RestaurantDetails extends AppCompatActivity {
 
                 // If user didn't subscribed this restaurant
                 if (!subscribers.contains(FirebaseAuth.getInstance().getUid())) {
-
                     // Add user into restaurant subscribers list
                     subscribers.add(FirebaseAuth.getInstance().getUid());
                     HashMap<String, ArrayList<String>> data = new HashMap<>();
                     data.put(Constants.SUBSCRIBERS_LIST, subscribers);
                     FireStoreRestaurantRequest.updateSubscribersList(placeId, currentDate, data)
                             .addOnSuccessListener(aVoid -> startSubscribersRecyclerView());
-
                     // Update user value
                     FireStoreUserRequest.updateUserSubscribeBoolean(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()));
-
                     // And save restaurant
                     saveSubscribePlace();
                 }
@@ -261,6 +279,9 @@ public class RestaurantDetails extends AppCompatActivity {
         }
     }
 
+    /**
+     * This method save current place id into sharedPreference
+     */
     private void saveSubscribePlace(){
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SUBSCRIBE_PLACE_PREF, MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -277,7 +298,9 @@ public class RestaurantDetails extends AppCompatActivity {
 
     /**
      * This method show place image on UI
+     * @param value is google place details request response as GooglePlaceDetailsResponse instance
      */
+
     private void setPlaceImage(GooglePlaceDetailsResponse value) {
         if (value.getResult().getPhotos() != null && value.getResult().getPhotos().get(0).getPhotoReference() != null) {
             String photoUrl = Constants.BASE_PHOTO_API_REQUEST + value.getResult().getPhotos().get(0).getPhotoReference() + Constants.PHOTO_API_KEY_PARAMETERS + BuildConfig.PLACE_API_KEY;
@@ -296,11 +319,14 @@ public class RestaurantDetails extends AppCompatActivity {
     }
 
     //--------------------------------------------
-    // For Place Image
+    // For Place Rate
     //--------------------------------------------
 
+    /**
+     * This method configure place rating bar view
+     * @param value is google place details request response as GooglePlaceDetailsResponse instance
+     */
     private void setPlaceRatingBar(GooglePlaceDetailsResponse value) {
-
         float myPlaceRating = Helper.ratingConverter(value.getResult().getRating());
         Log.d("RestaurantDetails", "Place rate : " + myPlaceRating);
         placeRatingBar.setRating(myPlaceRating);
@@ -311,11 +337,16 @@ public class RestaurantDetails extends AppCompatActivity {
     // For Place call
     //--------------------------------------------
 
+    /**
+     * This method configure call button click :
+     *  - if place have a phone number : start ACTION_CALL
+     *  - else : notify user, with toast, that place have no phone number
+     * @param value is google place details request response as GooglePlaceDetailsResponse instance
+     */
     public void setCallButton(GooglePlaceDetailsResponse value) {
         placeCallButton.setOnClickListener(v -> {
             if (value.getResult().getFormattedPhoneNumber() != null) {
                 Log.d("RestaurantDetails", "setCallButton : place phone number : " + value.getResult().getFormattedPhoneNumber());
-
                 String phoneNumber = Constants.TEL + value.getResult().getFormattedPhoneNumber();
                 Intent intent = new Intent(Intent.ACTION_CALL);
                 intent.setData(Uri.parse(phoneNumber));
@@ -330,6 +361,12 @@ public class RestaurantDetails extends AppCompatActivity {
     // For Place website
     //--------------------------------------------
 
+    /**
+     * This method configure website click :
+     *      *  - if place have a website : start WebViewActivity
+     *      *  - else : notify user, with toast, that place have no website
+     * @param value is google place details request response as GooglePlaceDetailsResponse instance
+     */
     private void setWebSiteButton(GooglePlaceDetailsResponse value) {
         // Get website url
         String webSite = value.getResult().getWebsite();

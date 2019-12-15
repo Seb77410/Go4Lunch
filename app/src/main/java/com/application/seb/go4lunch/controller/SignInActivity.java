@@ -65,16 +65,17 @@ public class SignInActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        //Toast.makeText(getApplicationContext(), "result code = " + resultCode, Toast.LENGTH_LONG).show();
         IdpResponse response = IdpResponse.fromResultIntent(data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) { // SUCCESS
                 Log.d("Auth successful"
                         , "User id = " + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()
                         + ", User name = " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName()
-                        + ", User photo url : "
-                        + FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl());
+                        + ", User photo url : " + FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()
+                        + ", current date : " + Helper.setCurrentDate(Calendar.getInstance()));
+                // Add user to FireStore database
                 createUser();
+                // Start MainActivity
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
             } else { // ERRORS
@@ -94,31 +95,63 @@ public class SignInActivity extends AppCompatActivity {
         }
     }
 
-    private void createUser(){
+    //----------------------------------------------------------------------------------------------
+    // Create User
+    //----------------------------------------------------------------------------------------------
 
+    /**
+     *  This method create a user FireStore document if necessary
+     */
+    private void createUser(){
         FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
                 .addOnSuccessListener(documentSnapshot -> {
                     // If user is not yet created, we create user
                     if(!documentSnapshot.exists()){
                         // If user have photo
-                        if (FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl() != null) {
-                            FireStoreUserRequest.createUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).toString(), Helper.setCurrentDate(Calendar.getInstance()))
-                            .addOnSuccessListener(aVoid -> {
-                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                startActivity(intent);
-                            });
-                        }
+                        createUserWithPhoto();
                         // If user not have photo
-                        else{
-                            FireStoreUserRequest.createUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Helper.setCurrentDate(Calendar.getInstance()))
-                            .addOnSuccessListener(aVoid -> {
-                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                startActivity(intent);
-                            });
-                        }
+                        createUserWithoutPhoto();
                     }
                 });
     }
+
+    /**
+     * If user profile contains photo url, that method create add user FirStore document with photo
+     */
+    private void createUserWithPhoto(){
+        if (Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getPhotoUrl() != null) {
+            FireStoreUserRequest
+                    .createUser(
+                        Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(),
+                        FirebaseAuth.getInstance().getCurrentUser().getDisplayName(),
+                        Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).toString(),
+                            Helper.setCurrentDate(Calendar.getInstance()))
+                    .addOnSuccessListener(aVoid -> {
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                    });
+        }
+    }
+
+    /**
+     * If user profile not contains photo url, that method create add user FirStore document without photo
+     */
+    private void createUserWithoutPhoto(){
+        if(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getPhotoUrl() == null){
+            FireStoreUserRequest.createUser(
+                    Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(),
+                    FirebaseAuth.getInstance().getCurrentUser().getDisplayName(),
+                    Helper.setCurrentDate(Calendar.getInstance()))
+                    .addOnSuccessListener(aVoid -> {
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                    });
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // OnResume
+    //----------------------------------------------------------------------------------------------
 
     @Override
     protected void onResume() {

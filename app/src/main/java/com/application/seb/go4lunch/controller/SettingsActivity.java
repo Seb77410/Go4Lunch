@@ -18,8 +18,16 @@ import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    //----------------------------------------------------------------------------------------------
+    // For data
+    //----------------------------------------------------------------------------------------------
+
     Switch ableNotification;
     Toolbar mToolbar;
+
+    //----------------------------------------------------------------------------------------------
+    // OnCreate
+    //----------------------------------------------------------------------------------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +39,13 @@ public class SettingsActivity extends AppCompatActivity {
         setSwitchNotificationsButton();
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Able / Disable notifications
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * This method get and update user FireStore document
+     */
     private void setSwitchNotificationsButton(){
 
         FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
@@ -46,11 +61,21 @@ public class SettingsActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Update current user FireStore document.
+     */
     private void updateNotificationsParameters(){
         ableNotification.setOnCheckedChangeListener((buttonView, isChecked) ->
                 FireStoreUserRequest.updateUserNotificationsBoolean(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()), isChecked));
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Back stack
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * This method configure toolbar back stack
+     */
     private void configureBackStack(){
         mToolbar = findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(mToolbar);

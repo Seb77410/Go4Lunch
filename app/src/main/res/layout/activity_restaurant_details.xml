@@ -181,6 +181,6 @@
         app:rippleColor="@color/grey"
         app:useCompatPadding="false"
         app:fabSize="auto"
-        />
+        tools:ignore="RelativeOverlap" />
 
 </RelativeLayout>

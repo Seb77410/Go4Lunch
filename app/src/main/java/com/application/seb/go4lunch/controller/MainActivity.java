@@ -61,7 +61,10 @@ public class MainActivity
         implements MapFragment.OnFragmentInteractionListener,
                    NavigationView.OnNavigationItemSelectedListener{
 
+    //----------------------------------------------------------------------------------------------
     // For data
+    //----------------------------------------------------------------------------------------------
+
     Toolbar mToolbar;
     BottomNavigationView bottomNavigationView;
     LatLng userLocation;
@@ -83,18 +86,9 @@ public class MainActivity
     ArrayList<String> nearbyPlacesId = new ArrayList<>();
     ListViewAdapter listViewAdapter;
 
-
-    // For multidex error
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        MultiDex.install(this);
-    }
-
     //----------------------------------------------------------------------------------------------
     // On Create
     //----------------------------------------------------------------------------------------------
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,6 +121,9 @@ public class MainActivity
     // Update FireStore User date value if necessary
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * This method save user last day connexion into FireStore database
+     */
     private void updateUserValue(){
         // Get currentDate
         String currentDate =  Helper.setCurrentDate(Calendar.getInstance());
@@ -355,7 +352,6 @@ public class MainActivity
         if (item.getItemId() == R.id.search_menu) {
             hideToolbarItems();
             autocompleteLayout.setVisibility(View.VISIBLE);
-
             autocompleteSpeakButton.setOnClickListener(v -> {
                 Log.d("Speak button", "just clicked");
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
@@ -371,19 +367,22 @@ public class MainActivity
         return super.onOptionsItemSelected(item);
     }
 
-    private void startSearchRequest(){
-        HashMap<String, String> optionsMap = new HashMap<>();
+    private void configureSearchRequestOptions(HashMap<String, String> optionsMap){
         optionsMap.put(Constants.INPUT, autocompleteText.getText().toString());
         optionsMap.put(Constants.TYPES, Constants.TYPES_VALUE);
-        optionsMap.put(Constants.LOCATION,userLocation.latitude+","+userLocation.longitude);
+       // optionsMap.put(Constants.LOCATION,userLocation.latitude+","+userLocation.longitude);
+        optionsMap.put(Constants.LOCATION,48.848071+","+2.395671);
         optionsMap.put(Constants.RADIUS, Constants.RADIUS_VALUE);
         optionsMap.put(Constants.STRICTBOUNDS, "");
         optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
+    }
 
+    private void startSearchRequest(){
+        HashMap<String, String> optionsMap = new HashMap<>();
+        configureSearchRequestOptions(optionsMap);
         GooglePlacesStream.streamFetchAutocomplete(optionsMap).subscribeWith(new DisposableObserver<AutocompleteResponse>() {
             @Override
             public void onNext(AutocompleteResponse value) {
-
                 // Update toolbar view
                 clearAutocompleteView();
                 // Clear ArrayList
@@ -391,7 +390,7 @@ public class MainActivity
                 // Get places id into ArrayList
                 if (value.getPredictions() != null) {
                     for (int x = 0; x < value.getPredictions().size(); x++) {
-                        Log.d("Autocomplete response", "Restaurant name is : " + value.getPredictions().get(x).getDescription());
+                        Log.d("Autocomplete response", "Restaurant name is : " + value.getPredictions().get(x).getId());
                         autocompletePlacesId.add(value.getPredictions().get(x).getPlaceId());
                     }
                 }
@@ -403,14 +402,9 @@ public class MainActivity
             }
 
             @Override
-            public void onError(Throwable e) {
-
-            }
-
+            public void onError(Throwable e) {e.printStackTrace();}
             @Override
-            public void onComplete() {
-
-            }
+            public void onComplete() {}
         });
     }
 
@@ -431,7 +425,6 @@ public class MainActivity
     }
 
     private void updateCurrentFragmentView(){
-
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.activity_main_frame_layout);
         Fragment updateFragment;
         if (currentFragment instanceof MapFragment){
@@ -445,7 +438,6 @@ public class MainActivity
                     .replace(R.id.activity_main_frame_layout, updateFragment, Constants.MAP_FRAGMENT_TAG)
                     .commit();
         }
-
         else if (currentFragment instanceof ListViewFragment){
             listViewAdapter.setNearbyPlacesId(autocompletePlacesId);
             listViewAdapter.notifyDataSetChanged();
@@ -462,6 +454,15 @@ public class MainActivity
     @Override
     public void onFragmentSetUserLocation(LatLng userLocation) {
         this.userLocation = userLocation;
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // For multidex
+    //----------------------------------------------------------------------------------------------
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
     }
 
 }

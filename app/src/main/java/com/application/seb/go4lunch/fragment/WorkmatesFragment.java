@@ -29,15 +29,23 @@ import java.util.Objects;
  */
 public class WorkmatesFragment extends Fragment {
 
+    //----------------------------------------------------------------------------------------------
+    // For data
+    //----------------------------------------------------------------------------------------------
     private RecyclerView recyclerView;
     private WorkmatesAdapter adapter;
     private ArrayList<User> UsersList = new ArrayList<>();
 
+    //----------------------------------------------------------------------------------------------
+    // Constructor
+    //----------------------------------------------------------------------------------------------
     public WorkmatesFragment() {
         // Required empty public constructor
     }
 
-
+    //----------------------------------------------------------------------------------------------
+    // OnCreate
+    //----------------------------------------------------------------------------------------------
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -48,14 +56,15 @@ public class WorkmatesFragment extends Fragment {
         return fragmentResult;
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Configure
+    //----------------------------------------------------------------------------------------------
 
-    // ---------------------------------------------------------------------------------------------
-    // CONFIGURATION
-    // ---------------------------------------------------------------------------------------------
-
-    // Configure RecyclerView, Adapter, LayoutManager & glue it together
+    /**
+     * This method Configure RecyclerView, Adapter, LayoutManager & glue it together
+     * @param userList is a that contains every user Ids
+     */
     private void configureRecyclerView(List<User> userList) {
-
         // Create adapter passing the list of users
         this.adapter = new WorkmatesAdapter(userList,Glide.with(this));
         // Attach the adapter to the recycler view to populate items
@@ -64,10 +73,15 @@ public class WorkmatesFragment extends Fragment {
         this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 
-    // ---------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     // FireStore
-    // ---------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
 
+    /**
+     * This method get every user Ids ordered by boolean into a list.
+     * The boolean verify if user already subscribe a restaurant.
+     * Firsts of this list have this boolean tu true
+     */
     private void getFormatUsersList() {
         // Get user list in order of boolean subscribe restaurant value
         FireStoreUserRequest.getFormatUsersList()

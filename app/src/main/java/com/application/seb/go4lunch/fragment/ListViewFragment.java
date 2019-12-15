@@ -26,10 +26,16 @@ import java.util.ArrayList;
  */
 public class ListViewFragment extends Fragment {
 
+    //----------------------------------------------------------------------------------------------
+    // For data
+    //----------------------------------------------------------------------------------------------
     private RecyclerView recyclerView;
     private ArrayList<String> nearbyPlacesId;
     private ListViewAdapter listViewAdapter;
 
+    //----------------------------------------------------------------------------------------------
+    // Constructors
+    //----------------------------------------------------------------------------------------------
     public ListViewFragment() {
         // Required empty public constructor
     }
@@ -41,6 +47,9 @@ public class ListViewFragment extends Fragment {
         return frag;
     }
 
+    //----------------------------------------------------------------------------------------------
+    // OnCreate
+    //----------------------------------------------------------------------------------------------
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -56,7 +65,13 @@ public class ListViewFragment extends Fragment {
         return rootView;
     }
 
-    // Configure RecyclerView, Adapter, LayoutManager & glue it together
+    //----------------------------------------------------------------------------------------------
+    // Configure
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * this method Configure RecyclerView, Adapter, LayoutManager & glue it together
+     */
     private void configureRecyclerView() {
 
         // For recyclerView views not error
@@ -74,7 +89,10 @@ public class ListViewFragment extends Fragment {
     private void configureOnClickRecyclerView(RecyclerView recyclerView) {
         ItemClickSupport.addTo(recyclerView, R.layout.fragment_list_view_item)
                 .setOnItemClickListener((recyclerView1, mPosition, v) -> {
-
+                    // Update places id list when user use toolbar search
+                    if(listViewAdapter.getNearbyPlacesId()!= null){
+                        nearbyPlacesId =  listViewAdapter.getNearbyPlacesId();
+                    }
                     //Start RestaurantDetails activity with restaurant ID as arguments
                     Intent intent = new Intent(getActivity(), RestaurantDetails.class);
                     intent.putExtra(Constants.PLACE_DETAILS, nearbyPlacesId.get(mPosition));
@@ -82,6 +100,4 @@ public class ListViewFragment extends Fragment {
 
                 });
     }
-
-
 }
