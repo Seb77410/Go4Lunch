@@ -285,7 +285,6 @@ public class Helper {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SUBSCRIBE_PLACE_PREF, MODE_PRIVATE);
         return sharedPreferences.getString(Constants.SUBSCRIBE_PLACE_PREF_VALUE, null);
     }
-
 }
 
 

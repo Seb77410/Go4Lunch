@@ -31,6 +31,7 @@
     <string name="no_website" translatable="true">This restaurant have not website</string>
     <string name="no_location" translatable="true">Location not working</string>
     <string name="no_restaurant_subscribe" translatable="true">No restaurant subscribe</string>
+    <string name="action_call_not_accepted" translatable="true">Please authorize Go4lunch to make call</string>
     <!-- Drawer menu -->
     <string name="your_lunch" translatable="true">YOUR LUNCH</string>
     <string name="settings" translatable="true">SETTINGS</string>

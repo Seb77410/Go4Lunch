@@ -106,15 +106,10 @@ public class MainActivity
         drawerUserName = header.findViewById(R.id.nav_header_user_name);
         drawerUserEmail = header.findViewById(R.id.nav_header_user_email);
 
-        //Update user if necessary
-        this.updateUserValue();
+
+        createUserAndConfigureView();
         Helper.setSignInValue(getApplicationContext(), true);
-        // Configure view
-        this.configureToolbar();
-        this.configureBottomView();
-        this.configureNavigationView();
-        this.configureDrawerLayout();
-        this.configureFragment();
+
     }
 
     //----------------------------------------------------------------------------------------------
@@ -127,8 +122,9 @@ public class MainActivity
     private void updateUserValue(){
         // Get currentDate
         String currentDate =  Helper.setCurrentDate(Calendar.getInstance());
+        String userId = FirebaseAuth.getInstance().getUid();
         FireStoreUserRequest
-                .getUser(FirebaseAuth.getInstance().getUid())
+                .getUser(userId)
                 .addOnSuccessListener(documentSnapshot -> {
                     userDate = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getCurrentDate();
                     Log.d("SignIn Activity", "User current date is  : " + userDate);
@@ -465,5 +461,95 @@ public class MainActivity
         MultiDex.install(this);
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Create User
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     *  This method create a user FireStore document if necessary
+     */
+    private void createUserAndConfigureView(){
+        FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        DocumentSnapshot documentSnapshot = task.getResult();
+                        // If user is not yet created, we create user
+                        if (documentSnapshot == null ){
+                            Log.e("SIGN IN", "DOCUMENT NULL");
+                        }
+                        else{
+                            Log.e("SIGN IN", "DOCUMENT NOT NULL");
+                            if (documentSnapshot.exists()){
+                                // Configure view
+                                this.configureToolbar();
+                                this.configureBottomView();
+                                this.configureNavigationView();
+                                this.configureDrawerLayout();
+                                this.configureFragment();
+                                //Update user if necessary
+                                this.updateUserValue();
+                                Log.e("SIGN IN", "DOCUMENT EXIST");
+                            }
+                            else {
+                                // If user have photo
+                                createUserWithPhoto();
+                                // If user not have photo
+                                createUserWithoutPhoto();
+                                Log.e("SIGN IN", "CREATE USER");}
+                        }
+                    }else {
+                        Log.e("SIGN IN", "CREATE NOT USER");
+                    }
+
+                });
+    }
+
+    /**
+     * If user profile contains photo url, that method create add user FirStore document with photo
+     */
+    private void createUserWithPhoto(){
+        if (Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getPhotoUrl() != null) {
+            FireStoreUserRequest
+                    .createUser(
+                            Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(),
+                            FirebaseAuth.getInstance().getCurrentUser().getDisplayName(),
+                            Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).toString(),
+                            Helper.setCurrentDate(Calendar.getInstance()))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.e("SignIN", "USER CREATED");
+                        // Configure view
+                        this.configureToolbar();
+                        this.configureBottomView();
+                        this.configureNavigationView();
+                        this.configureDrawerLayout();
+                        this.configureFragment();
+                        //Update user if necessary
+                        this.updateUserValue();
+                    });
+        }
+    }
+
+    /**
+     * If user profile not contains photo url, that method create add user FirStore document without photo
+     */
+    private void createUserWithoutPhoto(){
+        if(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getPhotoUrl() == null){
+            FireStoreUserRequest.createUser(
+                    Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(),
+                    FirebaseAuth.getInstance().getCurrentUser().getDisplayName(),
+                    Helper.setCurrentDate(Calendar.getInstance()))
+                    .addOnSuccessListener(aVoid -> {
+                        Log.e("SignIN", "USER CREATED");
+                        // Configure view
+                        this.configureToolbar();
+                        this.configureBottomView();
+                        this.configureNavigationView();
+                        this.configureDrawerLayout();
+                        this.configureFragment();
+                        //Update user if necessary
+                        this.updateUserValue();
+                    });
+        }
+    }
 }
 

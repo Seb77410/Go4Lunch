@@ -14,6 +14,7 @@ import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -74,7 +75,7 @@ public class SignInActivity extends AppCompatActivity {
                         + ", User photo url : " + FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()
                         + ", current date : " + Helper.setCurrentDate(Calendar.getInstance()));
                 // Add user to FireStore database
-                createUser();
+                //createUser();
                 // Start MainActivity
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
@@ -104,14 +105,29 @@ public class SignInActivity extends AppCompatActivity {
      */
     private void createUser(){
         FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
-                .addOnSuccessListener(documentSnapshot -> {
-                    // If user is not yet created, we create user
-                    if(!documentSnapshot.exists()){
-                        // If user have photo
-                        createUserWithPhoto();
-                        // If user not have photo
-                        createUserWithoutPhoto();
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        DocumentSnapshot documentSnapshot = task.getResult();
+                        // If user is not yet created, we create user
+                        if (documentSnapshot == null ){
+                            Log.e("SIGN IN", "DOCUMENT NULL");
+                        }
+                        else{
+                            Log.e("SIGN IN", "DOCUMENT NOT NULL");
+                            if (documentSnapshot.exists()){
+                                Log.e("SIGN IN", "DOCUMENT EXIST");
+                            }
+                            else {
+                                // If user have photo
+                                createUserWithPhoto();
+                                // If user not have photo
+                                createUserWithoutPhoto();
+                                Log.e("SIGN IN", "CREATE USER");}
+                        }
+                        }else {
+                        Log.e("SIGN IN", "CREATE NOT USER");
                     }
+
                 });
     }
 
@@ -127,8 +143,9 @@ public class SignInActivity extends AppCompatActivity {
                         Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).toString(),
                             Helper.setCurrentDate(Calendar.getInstance()))
                     .addOnSuccessListener(aVoid -> {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
+                        Log.e("SignIN", "USER CREATED");
+                       // Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        //startActivity(intent);
                     });
         }
     }
@@ -143,10 +160,12 @@ public class SignInActivity extends AppCompatActivity {
                     FirebaseAuth.getInstance().getCurrentUser().getDisplayName(),
                     Helper.setCurrentDate(Calendar.getInstance()))
                     .addOnSuccessListener(aVoid -> {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
+                        Log.e("SignIN", "USER CREATED");
+                        //Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        //startActivity(intent);
                     });
         }
+        finish();
     }
 
     //----------------------------------------------------------------------------------------------
@@ -161,5 +180,6 @@ public class SignInActivity extends AppCompatActivity {
         }
         Log.d("SignIn Life cycle", "onResume");
     }
+
 
 }

@@ -1,11 +1,15 @@
 package com.application.seb.go4lunch.controller;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
@@ -76,6 +80,7 @@ public class RestaurantDetails extends AppCompatActivity {
         placeLikeButton = findViewById(R.id.restaurant_details_like_image);
         placeWebSiteButton = findViewById(R.id.restaurant_details_website_image);
 
+        askForCallPermission();
         // Show restaurant details
         getActivityArgs();
         getPlaceDetails();
@@ -347,14 +352,34 @@ public class RestaurantDetails extends AppCompatActivity {
         placeCallButton.setOnClickListener(v -> {
             if (value.getResult().getFormattedPhoneNumber() != null) {
                 Log.d("RestaurantDetails", "setCallButton : place phone number : " + value.getResult().getFormattedPhoneNumber());
-                String phoneNumber = Constants.TEL + value.getResult().getFormattedPhoneNumber();
-                Intent intent = new Intent(Intent.ACTION_CALL);
-                intent.setData(Uri.parse(phoneNumber));
-                startActivity(intent);
+                // If user didn't authorize ACTION_CALL : make toast to asl him to authorize ACTION_CALL
+                if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getApplicationContext()), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.action_call_not_accepted), Toast.LENGTH_LONG).show();
+                }
+                // If user Authorize ACTION_CALL : start call action
+                else {
+                    String phoneNumber = Constants.TEL + value.getResult().getFormattedPhoneNumber();
+                    Intent intent = new Intent(Intent.ACTION_CALL);
+                    intent.setData(Uri.parse(phoneNumber));
+                    startActivity(intent);
+                }
+                // Notify user with toast that place have no phone number
             } else {
                 Toast.makeText(getApplicationContext(), getString(R.string.no_phone_number), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    /**
+     * This method aks CALL_PHONE permission to user
+     */
+    private void askForCallPermission(){
+        if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getApplicationContext()), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            // Ask for location permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, Constants.REQUEST_CODE);
+            }
+        }
     }
 
     //--------------------------------------------
@@ -382,5 +407,7 @@ public class RestaurantDetails extends AppCompatActivity {
             }
         });
     }
+
+
 }
 

@@ -157,6 +157,7 @@ public class GooglePlaceDetailsResponse {
 
     public class Result {
 
+        @SerializedName("formatted_phone_number")
         @Expose
         private String formattedPhoneNumber;
         @SerializedName("geometry")

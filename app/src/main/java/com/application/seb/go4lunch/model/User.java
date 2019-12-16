@@ -1,7 +1,5 @@
 package com.application.seb.go4lunch.model;
 
-import androidx.annotation.Nullable;
-
 public class User {
 
     //----------------------------------------------------------------------------------------------
@@ -9,7 +7,6 @@ public class User {
     //----------------------------------------------------------------------------------------------
     private String uid;
     private String username;
-    @Nullable
     private String urlPicture;
     private Boolean alreadySubscribeRestaurant = false;
     private String currentDate;

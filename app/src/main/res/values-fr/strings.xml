@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="action_call_not_accepted" translatable="true">Please authorize Go4lunch to make call</string>
     <string name="toolbar_title">J\'ai faim</string>
     <string name="map_view_title">Carte</string>
     <string name="list_view_title">Liste</string>

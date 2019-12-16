@@ -3,6 +3,7 @@
     <string name="autocomplete_hint_list_view_fragment">Search restaurant</string>
     <string name="autocomplete_hint_map_fragment">Search restaurant</string>
     <string name="autocomplete_hint_workmates_fragment">Search workmates</string>
+    <string name="action_call_not_accepted" translatable="true">Please authorize Go4lunch to make call</string>
     <string name="call_button">CALL</string>
     <string name="is_eating">is eating</string>
     <string name="like_button">LIKE</string>
