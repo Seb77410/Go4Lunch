@@ -5,7 +5,7 @@
     <string name="autocomplete_hint_workmates_fragment">Search workmates</string>
     <string name="action_call_not_accepted" translatable="true">Please authorize Go4lunch to make call</string>
     <string name="call_button">CALL</string>
-    <string name="is_eating">is eating</string>
+    <string name="is_eating"> is eating</string>
     <string name="like_button">LIKE</string>
     <string name="list_view_title">List View</string>
     <string name="logout">LOGOUT</string>
@@ -24,4 +24,8 @@
     <string name="workmates_title">Workmates</string>
     <string name="your_lunch">YOUR LUNCH</string>
     <string name="able_notification">Able notification</string>
+    <string name="is_joining">" is joining"</string>
+    <string name="restaurant">"Restaurant : "</string>
+    <string name="workmates">"Workamtes : "</string>
+    <string name="address">"Address : "</string>
 </resources>

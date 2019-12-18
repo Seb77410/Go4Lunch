@@ -50,5 +50,11 @@
     <!-- Workmate list text -->
     <string name="no_restaurant_select" translatable="true"> hasn\'t decided yet</string>
     <string name="is_eating" translatable="true"> is eating</string>
+    <!-- Subscribers list -->
+    <string name="is_joining" translatable="true"> is joining</string>
+    <!-- Notifications -->
+    <string name="restaurant" translatable="true">Restaurant : </string>
+    <string name="address" translatable="true">Address : </string>
+    <string name="workmates" translatable="true">Workmates : </string>
 
 </resources>

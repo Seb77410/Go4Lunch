@@ -169,6 +169,8 @@ public class MyFireBaseMessagingService extends FirebaseMessagingService {
      * This method modify notification text
      */
     private void setNotificationMessage() {
-        body = "Restaurant : " + restaurantName + "\nAddress :  " + restaurantAddress + "\nWorkmates : " + restaurantSubscribersName;
+        body = getString(R.string.restaurant) + restaurantName + "\n"
+               + getString(R.string.address) + restaurantAddress + "\n"
+               + getString(R.string.workmates) + restaurantSubscribersName;
     }
 }

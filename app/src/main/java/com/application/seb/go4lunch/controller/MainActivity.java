@@ -99,7 +99,6 @@ public class MainActivity
         mToolbar = findViewById(R.id.activity_main_toolbar);
         autocompleteLayout = findViewById(R.id.autocomplete_layout);
         autocompleteSearchButton= findViewById(R.id.imageButton);
-        autocompleteSpeakButton = findViewById(R.id.imageButton2);
         autocompleteText = findViewById(R.id.autocomplete_editText);
         ConstraintLayout header = (ConstraintLayout) navigationView.getHeaderView(0);
         drawerUserPhoto = header.findViewById(R.id.nav_header_user_photo);
@@ -110,6 +109,21 @@ public class MainActivity
         createUserAndConfigureView();
         Helper.setSignInValue(getApplicationContext(), true);
 
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Configure view
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * This method configure activity view
+     */
+    private void configureView(){
+        this.configureToolbar();
+        this.configureBottomView();
+        this.configureNavigationView();
+        this.configureDrawerLayout();
+        this.configureFragment();
     }
 
     //----------------------------------------------------------------------------------------------
@@ -348,12 +362,6 @@ public class MainActivity
         if (item.getItemId() == R.id.search_menu) {
             hideToolbarItems();
             autocompleteLayout.setVisibility(View.VISIBLE);
-            autocompleteSpeakButton.setOnClickListener(v -> {
-                Log.d("Speak button", "just clicked");
-                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-                startActivity(intent);
-            });
-
             autocompleteSearchButton.setOnClickListener(v -> {
                 Log.d("Search button", "just click");
                 startSearchRequest();
@@ -481,11 +489,7 @@ public class MainActivity
                             Log.e("SIGN IN", "DOCUMENT NOT NULL");
                             if (documentSnapshot.exists()){
                                 // Configure view
-                                this.configureToolbar();
-                                this.configureBottomView();
-                                this.configureNavigationView();
-                                this.configureDrawerLayout();
-                                this.configureFragment();
+                                this.configureView();
                                 //Update user if necessary
                                 this.updateUserValue();
                                 Log.e("SIGN IN", "DOCUMENT EXIST");
@@ -500,9 +504,9 @@ public class MainActivity
                     }else {
                         Log.e("SIGN IN", "CREATE NOT USER");
                     }
-
                 });
     }
+
 
     /**
      * If user profile contains photo url, that method create add user FirStore document with photo

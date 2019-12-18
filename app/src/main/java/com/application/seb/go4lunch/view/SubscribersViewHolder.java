@@ -12,8 +12,6 @@ import com.application.seb.go4lunch.model.User;
 import com.application.seb.go4lunch.R;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.firestore.DocumentSnapshot;
 
 class SubscribersViewHolder  extends RecyclerView.ViewHolder {
 
@@ -28,45 +26,52 @@ class SubscribersViewHolder  extends RecyclerView.ViewHolder {
 
     }
 
+    /**
+     * This method get and show user information on UI
+     * @param subscriberId is user id
+     * @param glide is RequestManager instance necessary to load user photo
+     */
     void updateWithSubscribersList(String subscriberId, RequestManager glide){
 
-        // On recup l'utilisateur qui a l'id passé en paramétres
-        FireStoreUserRequest.getUser(subscriberId).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                // On le met dans un objet
-                User user = documentSnapshot.toObject(User.class);
+        // Get user
+        FireStoreUserRequest.getUser(subscriberId).addOnSuccessListener(documentSnapshot -> {
+            // On le met dans un objet
+            User user = documentSnapshot.toObject(User.class);
 
-                // Si cet objet n'est pas null
-                if (user != null) {
-                    // On recup sa photo et son nom d'utilisateur
-                    String photoUrl = user.getUrlPicture();
-                    String name = user.getUsername();
+            if (user != null) {
+                // Get user name and user photo
+                String photoUrl = user.getUrlPicture();
+                String name = user.getUsername();
 
-                    // On modifie l'affichage du nom
-                    subscribersName.setText(name + " is joining!");
-                    // On affiche sa photo
-                    if(photoUrl != null) {
-                        glide.load(photoUrl)
-                                .apply(RequestOptions.circleCropTransform())
-                                .placeholder(R.drawable.no_image)
-                                .error(R.drawable.no_image)
-                                .into(subscribersPhoto);
-                    }
-                    else{
-                        glide.load(R.drawable.no_image)
-                                .apply(RequestOptions.circleCropTransform())
-                                .placeholder(R.drawable.no_image)
-                                .error(R.drawable.no_image)
-                                .into(subscribersPhoto);
-                    }
-                }
+                // Update user name
+                subscribersName.setText(name + " is joining !");
+                // Update user photo
+                updateUserPhoto(glide, photoUrl);
             }
-
         });
 
     }
 
-
+    /**
+     * This method load user photo if user profile have photo
+     * @param glide is a RequestManager instance necessary to load photo
+     * @param photoUrl is user photo url that we want load
+     */
+    private void updateUserPhoto(RequestManager glide, String photoUrl){
+        if(photoUrl != null) {
+            glide.load(photoUrl)
+                    .apply(RequestOptions.circleCropTransform())
+                    .placeholder(R.drawable.no_image)
+                    .error(R.drawable.no_image)
+                    .into(subscribersPhoto);
+        }
+        else{
+            glide.load(R.drawable.no_image)
+                    .apply(RequestOptions.circleCropTransform())
+                    .placeholder(R.drawable.no_image)
+                    .error(R.drawable.no_image)
+                    .into(subscribersPhoto);
+        }
+    }
 
 }

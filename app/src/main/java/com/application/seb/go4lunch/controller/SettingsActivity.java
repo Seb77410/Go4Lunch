@@ -80,7 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
         mToolbar = findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(mToolbar);
         // Set back stack
-        Drawable upArrow = ResourcesCompat.getDrawable(this.getResources(), R.drawable.ic_arrow_back_black_24dp, null);
+        Drawable upArrow = ResourcesCompat.getDrawable(this.getResources(), R.drawable.ic_arrow_white_24dp, null);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setHomeAsUpIndicator(upArrow);
