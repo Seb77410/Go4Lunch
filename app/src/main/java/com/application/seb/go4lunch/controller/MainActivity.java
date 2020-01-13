@@ -79,7 +79,6 @@ public class MainActivity
     ActionBarDrawerToggle toggle;
     ConstraintLayout autocompleteLayout;
     ImageButton autocompleteSearchButton;
-    ImageButton autocompleteSpeakButton;
     Menu menu;
     EditText autocompleteText;
     ArrayList<String> autocompletePlacesId = new ArrayList<>();
@@ -374,7 +373,7 @@ public class MainActivity
     private void configureSearchRequestOptions(HashMap<String, String> optionsMap){
         optionsMap.put(Constants.INPUT, autocompleteText.getText().toString());
         optionsMap.put(Constants.TYPES, Constants.TYPES_VALUE);
-       // optionsMap.put(Constants.LOCATION,userLocation.latitude+","+userLocation.longitude);
+       //optionsMap.put(Constants.LOCATION,userLocation.latitude+","+userLocation.longitude);
         optionsMap.put(Constants.LOCATION,48.848071+","+2.395671);
         optionsMap.put(Constants.RADIUS, Constants.RADIUS_VALUE);
         optionsMap.put(Constants.STRICTBOUNDS, "");

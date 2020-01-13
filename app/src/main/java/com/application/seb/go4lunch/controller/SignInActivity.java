@@ -72,8 +72,6 @@ public class SignInActivity extends AppCompatActivity {
                         + ", User name = " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName()
                         + ", User photo url : " + FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()
                         + ", current date : " + Helper.setCurrentDate(Calendar.getInstance()));
-                // Add user to FireStore database
-                //createUser();
                 // Start MainActivity
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
