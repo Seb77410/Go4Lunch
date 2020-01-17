@@ -1,6 +1,7 @@
 package com.application.seb.go4lunch.fragment;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -11,10 +12,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.application.seb.go4lunch.api.FireStoreUserRequest;
+import com.application.seb.go4lunch.controller.RestaurantDetailsActivity;
 import com.application.seb.go4lunch.model.User;
 import com.application.seb.go4lunch.R;
+import com.application.seb.go4lunch.utils.Constants;
+import com.application.seb.go4lunch.utils.ItemClickSupport;
 import com.application.seb.go4lunch.view.WorkmatesAdapter;
 import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -34,7 +39,7 @@ public class WorkmatesFragment extends Fragment {
     //----------------------------------------------------------------------------------------------
     private RecyclerView recyclerView;
     private WorkmatesAdapter adapter;
-    private ArrayList<User> UsersList = new ArrayList<>();
+    private ArrayList<User> usersList = new ArrayList<>();
 
     //----------------------------------------------------------------------------------------------
     // Constructor
@@ -53,6 +58,7 @@ public class WorkmatesFragment extends Fragment {
         recyclerView = fragmentResult.findViewById(R.id.workmatesFragment_recyclerView);
 
         getFormatUsersList();
+        configureOnClickRecyclerView(recyclerView);
         return fragmentResult;
     }
 
@@ -88,14 +94,34 @@ public class WorkmatesFragment extends Fragment {
                 .addOnCompleteListener(task -> {
                     for (DocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
                         User user = document.toObject(User.class);
-                        UsersList.add(user);
+                        usersList.add(user);
                     }
-                    Log.d("Users list", "size = " + UsersList.size());
+                    Log.d("Users list", "size = " + usersList.size());
                     // Update view
-                    configureRecyclerView(UsersList);
+                    configureRecyclerView(usersList);
                     adapter.notifyDataSetChanged();
                 });
 
+    }
+
+    /**
+     *Configure item click on RecyclerView
+     * @param recyclerView is item recycler view
+     */
+    private void configureOnClickRecyclerView(RecyclerView recyclerView) {
+        ItemClickSupport.addTo(recyclerView, R.layout.fragment_list_view_item)
+                .setOnItemClickListener((recyclerView1, mPosition, v) -> {
+                    if (usersList.get(mPosition).getAlreadySubscribeRestaurant()) {
+
+                        //Start RestaurantDetailsActivity activity with restaurant ID as arguments
+                        Intent intent = new Intent(getActivity(), RestaurantDetailsActivity.class);
+                        intent.putExtra(Constants.PLACE_DETAILS, usersList.get(mPosition).getSubscribeRestaurant());
+                        startActivity(intent);
+                    }else{
+                        Toast.makeText(getContext(), "No resturant subscribe", Toast.LENGTH_LONG).show();
+                    }
+
+                });
     }
 
 }

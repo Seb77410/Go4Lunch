@@ -56,6 +56,9 @@ public class FireStoreUserRequest {
     FireStoreUserRequest.UsersCollection().document(userId).update(Constants.ALREADY_SUBSCRIBE_RESTAURANT, true);
     }
 
+    public static void updateUserRestaurant(String userId, String restaurantId){
+        FireStoreUserRequest.UsersCollection().document(userId).update( Constants.SUBSCRIBE_RESTAURANT_ID, restaurantId);
+    }
     public static void updateUserNotificationsBoolean(String userId, Boolean isChecked){
     FireStoreUserRequest.UsersCollection().document(userId).update(Constants.ABLE_NOTIFICATIONS, isChecked);
     }

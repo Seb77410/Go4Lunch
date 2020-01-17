@@ -13,7 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.application.seb.go4lunch.controller.RestaurantDetails;
+import com.application.seb.go4lunch.controller.RestaurantDetailsActivity;
 import com.application.seb.go4lunch.R;
 import com.application.seb.go4lunch.utils.Constants;
 import com.application.seb.go4lunch.utils.ItemClickSupport;
@@ -93,8 +93,8 @@ public class ListViewFragment extends Fragment {
                     if(listViewAdapter.getNearbyPlacesId()!= null){
                         nearbyPlacesId =  listViewAdapter.getNearbyPlacesId();
                     }
-                    //Start RestaurantDetails activity with restaurant ID as arguments
-                    Intent intent = new Intent(getActivity(), RestaurantDetails.class);
+                    //Start RestaurantDetailsActivity activity with restaurant ID as arguments
+                    Intent intent = new Intent(getActivity(), RestaurantDetailsActivity.class);
                     intent.putExtra(Constants.PLACE_DETAILS, nearbyPlacesId.get(mPosition));
                     startActivity(intent);
 

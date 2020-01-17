@@ -2,6 +2,8 @@ package com.application.seb.go4lunch.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -91,13 +93,24 @@ public class Helper {
      */
     public static String setPlaceTime(GooglePlaceDetailsResponse place, TextView textView) {
         if (place.getResult().getOpeningHours() != null) {
+            textView.setTypeface(null, Typeface.ITALIC);
             if (place.getResult().getOpeningHours().getOpenNow()) {
-                textView.setText(R.string.place_is_open);
-            } else {
+
+                boolean isClosingSoon = checkIfPlaceIsClosingSoon(place);
+                if (isClosingSoon) {
+                    textView.setTextColor(Color.RED);
+                    textView.setText(R.string.place_is_closing_soon);
+                } else {
+                    Calendar calendar = getClosingHour(place);
+                    String text = Constants.closing_until + calendar.get(Calendar.HOUR_OF_DAY) + Constants.H;
+                    textView.setText(text);
+                }
+                return textView.getText().toString();
+            }else {
                 textView.setText(R.string.place_is_close);
+                return textView.getText().toString();
             }
-            return textView.getText().toString();
-        } else {
+        }else{
             return null;
         }
     }
@@ -108,7 +121,7 @@ public class Helper {
      * @param place is the place we want to verify
      * @return true only if place is closing soon
      */
-    public static Boolean checkIfPlaceIsClosingSoon(GooglePlaceDetailsResponse place) {
+    private static Boolean checkIfPlaceIsClosingSoon(GooglePlaceDetailsResponse place) {
         // For data
         int currentDay = Helper.getCurrentDayToInt();
         ArrayList<Integer> index = Helper.getPlaceOpeningIndex(place, currentDay);
@@ -130,6 +143,31 @@ public class Helper {
         return isClosingSoon;
     }
 
+    /**
+     * This method check, according current time, if a place is closing soon.
+     * A place is closing soon only if it close under one hour
+     * @param place is the place we want to verify
+     * @return true only if place is closing soon
+     */
+    private static Calendar getClosingHour(GooglePlaceDetailsResponse place) {
+        // For data
+        int currentDay = Helper.getCurrentDayToInt();
+        ArrayList<Integer> index = Helper.getPlaceOpeningIndex(place, currentDay);
+        Calendar calendar = Calendar.getInstance();
+        Calendar firstOpenDate = Helper.getPlaceOpeningTimes(index.get(0), place, calendar);
+        Calendar firstCloseDate = Helper.getPlaceClosingTimes(index.get(0), place);
+        Calendar currentClosingHour = null;
+
+
+        // Verify if place is closing soon
+        if (!calendar.before(firstOpenDate) && calendar.before(firstCloseDate)) {
+            currentClosingHour = getPlaceClosingTimes(index.get(0), place);
+        } else if (index.size() == 2) {
+            currentClosingHour = Helper.getPlaceClosingTimes(index.get(1), place);
+        }
+
+        return currentClosingHour;
+    }
     /**
      *  Convert a day into Integer value
      * @param currentDay is the day that we want convert. Must be : Calendar.DAY_OF_WEEK
@@ -277,7 +315,7 @@ public class Helper {
     }
 
     /**
-     * For WorkmatesFragment. Get user subscribe place name
+     * Get user subscribe place name
      * @param context is app context
      * @return a String value that contains user subscribe place name
      */

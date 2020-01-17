@@ -4,11 +4,10 @@ import android.view.View;
 
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
-import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.espresso.intent.rule.IntentsTestRule;
 
 import com.application.seb.go4lunch.controller.MainActivity;
-import com.application.seb.go4lunch.controller.RestaurantDetails;
+import com.application.seb.go4lunch.controller.RestaurantDetailsActivity;
 import com.application.seb.go4lunch.controller.SettingsActivity;
 import com.application.seb.go4lunch.controller.SignInActivity;
 
@@ -81,7 +80,7 @@ public class ActivityMainTest {
         // Navigation view menu item
             // "YOUR LUNCH" button
         onView(withText(R.string.your_lunch)).check(matches(isDisplayed())).perform(click());
-        intended(hasComponent(RestaurantDetails.class.getName()));
+        intended(hasComponent(RestaurantDetailsActivity.class.getName()));
         restaurantDetailsTest();
         onView(isRoot()).perform(pressBack());
         onView(withId(R.id.activity_main_drawer_layout)).perform(open());

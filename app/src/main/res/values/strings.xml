@@ -47,6 +47,9 @@
     <!-- Place is open or close -->
     <string name="place_is_open" translatable="true">Open</string>
     <string name="place_is_close" translatable="true">Close</string>
+    <string name="place_is_closing_soon" translatable="true">Closing soon</string>
+    <string name="place_is_open_until" translatable="true">Open until </string>
+
     <!-- Workmate list text -->
     <string name="no_restaurant_select" translatable="true"> hasn\'t decided yet</string>
     <string name="is_eating" translatable="true"> is eating</string>

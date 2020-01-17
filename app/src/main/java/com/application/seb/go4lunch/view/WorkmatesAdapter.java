@@ -21,6 +21,14 @@ public class WorkmatesAdapter extends RecyclerView.Adapter<WorkmatesViewHolder> 
     private List<User> userList;
     private RequestManager glide;
 
+    public List<User> getUserList() {
+        return userList;
+    }
+
+    public void setUserList(List<User> userList) {
+        this.userList = userList;
+    }
+
     // Constructor
     public WorkmatesAdapter(List<User> userList, RequestManager glide) {
         this.userList = userList;

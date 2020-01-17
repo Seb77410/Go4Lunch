@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 
 import com.application.seb.go4lunch.api.FireStoreRestaurantRequest;
 import com.application.seb.go4lunch.BuildConfig;
-import com.application.seb.go4lunch.controller.RestaurantDetails;
+import com.application.seb.go4lunch.controller.RestaurantDetailsActivity;
 import com.application.seb.go4lunch.model.GooglePlaceDetailsResponse;
 import com.application.seb.go4lunch.model.GooglePlacesResponse;
 import com.application.seb.go4lunch.model.SubscribersCollection;
@@ -228,6 +228,10 @@ public class MapFragment extends Fragment implements
      * @param value is GooglePlacesResponse instance
      */
     private void addMarkerOnRestaurant(int x,GooglePlacesResponse value ){
+
+        mMap.setOnMarkerClickListener(this);
+
+
         // Get Restaurant location into LatLng instance
         Double lat = value.getResults().get(x).getGeometry().getLocation().getLat();
         Double lng = value.getResults().get(x).getGeometry().getLocation().getLng();
@@ -270,8 +274,7 @@ public class MapFragment extends Fragment implements
                     if (location != null) {
                         Log.e("User Location ",  location.getLatitude() +" , " + location.getLongitude());
                         // Send user location to MainActivity
-                        //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        LatLng latLng = new LatLng(48.848071, 2.395671);
+                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                         ((OnFragmentInteractionListener) Objects.requireNonNull(getActivity())).onFragmentSetUserLocation(latLng);
                         // Move camera to current position
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
@@ -310,7 +313,7 @@ public class MapFragment extends Fragment implements
     //----------------------------------------------------------------------------------------------
 
     /**
-     * This method will start RestaurantDetails activity
+     * This method will start RestaurantDetailsActivity activity
      * and pass place information as intent arguments
       * @param marker is the marker that user click
      * @return always false
@@ -321,8 +324,8 @@ public class MapFragment extends Fragment implements
         if (marker.getTag() != null) {
             // Set marker place Id into string value
             String markerPlaceId = (String) marker.getTag();
-            //Start RestaurantDetails activity with restaurant details as arguments
-            Intent intent = new Intent(getActivity(), RestaurantDetails.class);
+            //Start RestaurantDetailsActivity activity with restaurant details as arguments
+            Intent intent = new Intent(getActivity(), RestaurantDetailsActivity.class);
             intent.putExtra(Constants.PLACE_DETAILS ,markerPlaceId);
             startActivity(intent);
         }
@@ -399,4 +402,5 @@ public class MapFragment extends Fragment implements
         if (this.disposable != null && !this.disposable.isDisposed()) this.disposable.dispose();
         super.onDestroyView();
     }
+
 }

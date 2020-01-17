@@ -1,8 +1,6 @@
 package com.application.seb.go4lunch.view;
 
 import android.annotation.SuppressLint;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -74,7 +72,7 @@ class ListViewViewHolder extends RecyclerView.ViewHolder {
                         setPlaceDistance(value, userLocation);
                         setPlaceRatingBar(value);
                         setPlaceImage(value, glide);
-                        setPlaceTime(value);
+                        Helper.setPlaceTime(value, placeTimes);
                         setPlaceSubscribersNumberWithRestaurant(value);
                     }
 
@@ -149,24 +147,6 @@ class ListViewViewHolder extends RecyclerView.ViewHolder {
 
                 });
     }
-
-
-    private void setPlaceTime(GooglePlaceDetailsResponse place){
-        placeTimes.setTypeface(null, Typeface.ITALIC);
-        if (place.getResult().getOpeningHours() != null) {
-            if (place.getResult().getOpeningHours().getOpenNow()) {
-                placeTimes.setText(R.string.place_is_open);
-                boolean isClosingSoon = Helper.checkIfPlaceIsClosingSoon(place);
-                if(isClosingSoon){
-                    placeTimes.setTextColor(Color.RED);
-                    placeTimes.setText("Closing soon");
-                }
-            } else {
-                placeTimes.setText(R.string.place_is_close);
-            }
-        }
-    }
-
 }
 
 

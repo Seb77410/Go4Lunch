@@ -74,7 +74,7 @@ public class MainActivity
     TextView drawerUserName;
     TextView drawerUserEmail;
     String userDate;
-    Boolean x;
+    Boolean x = false;
     Activity activity = this;
     ActionBarDrawerToggle toggle;
     ConstraintLayout autocompleteLayout;
@@ -84,6 +84,7 @@ public class MainActivity
     ArrayList<String> autocompletePlacesId = new ArrayList<>();
     ArrayList<String> nearbyPlacesId = new ArrayList<>();
     ListViewAdapter listViewAdapter;
+    String place;
 
     //----------------------------------------------------------------------------------------------
     // On Create
@@ -92,6 +93,8 @@ public class MainActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Log.e("ON CREATE", "ON CREATE");
 
         // References
         navigationView = findViewById(R.id.activity_main_nav_view);
@@ -103,7 +106,6 @@ public class MainActivity
         drawerUserPhoto = header.findViewById(R.id.nav_header_user_photo);
         drawerUserName = header.findViewById(R.id.nav_header_user_name);
         drawerUserEmail = header.findViewById(R.id.nav_header_user_email);
-
 
         createUserAndConfigureView();
         Helper.setSignInValue(getApplicationContext(), true);
@@ -171,7 +173,9 @@ public class MainActivity
         FireStoreUserRequest
                 .getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
                 .addOnSuccessListener(documentSnapshot -> {
-                    x = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getAlreadySubscribeRestaurant();
+                    if(documentSnapshot.exists()) {
+                        x = Objects.requireNonNull(documentSnapshot.toObject(User.class)).getAlreadySubscribeRestaurant();
+                    }
                     Log.d("User boolean", Constants.ALREADY_SUBSCRIBE_RESTAURANT + "= " +x.toString());
                     // Glue drawerLayout to .xml file
                     drawerLayout =  findViewById(R.id.activity_main_drawer_layout);
@@ -249,8 +253,8 @@ public class MainActivity
 
             case R.id.activity_main_drawer_you_lunch :
                 if (x) {
-                    String place = Helper.getSubscribePlaceValue(getApplicationContext());
-                    Intent intent = new Intent(this, RestaurantDetails.class);
+                    place = Helper.getSubscribePlaceValue(getApplicationContext());
+                    Intent intent = new Intent(this, RestaurantDetailsActivity.class);
                     intent.putExtra(Constants.PLACE_DETAILS, place);
                     startActivity(intent);
                 }
@@ -373,8 +377,7 @@ public class MainActivity
     private void configureSearchRequestOptions(HashMap<String, String> optionsMap){
         optionsMap.put(Constants.INPUT, autocompleteText.getText().toString());
         optionsMap.put(Constants.TYPES, Constants.TYPES_VALUE);
-       //optionsMap.put(Constants.LOCATION,userLocation.latitude+","+userLocation.longitude);
-        optionsMap.put(Constants.LOCATION,48.848071+","+2.395671);
+        optionsMap.put(Constants.LOCATION,userLocation.latitude+","+userLocation.longitude);
         optionsMap.put(Constants.RADIUS, Constants.RADIUS_VALUE);
         optionsMap.put(Constants.STRICTBOUNDS, "");
         optionsMap.put(Constants.KEY, BuildConfig.PLACE_API_KEY);
@@ -554,5 +557,19 @@ public class MainActivity
                     });
         }
     }
+
+
+    //----------------------------------------------------------------------------------------------
+    // On Resume
+    //----------------------------------------------------------------------------------------------
+
+    @Override
+    protected void onResume() {
+        Log.e("ON RESEUME", "ON RESUME");
+        configureDrawerLayout();
+        super.onResume();
+
+    }
+
 }
 

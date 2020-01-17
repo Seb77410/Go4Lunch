@@ -1,6 +1,7 @@
 package com.application.seb.go4lunch.api;
 
 import com.application.seb.go4lunch.model.Restaurant;
+import com.application.seb.go4lunch.model.SubscribersCollection;
 import com.application.seb.go4lunch.utils.Constants;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
@@ -48,8 +49,8 @@ public class FireStoreRestaurantRequest {
 
     // --- UPDATE --
 
-    public static Task<Void> updateSubscribersList(String placeId, String currentDate, HashMap<String, ArrayList<String>> data){
-        return FireStoreRestaurantRequest.restaurantSubscribersCollection(placeId).document(currentDate).set(data, SetOptions.merge());
+    public static Task<Void> updateSubscribersList(String placeId, String currentDate, SubscribersCollection subscribersCollection){
+        return FireStoreRestaurantRequest.restaurantSubscribersCollection(placeId).document(currentDate).set(subscribersCollection);
     }
 
     public static Task<Void> updatePlaceLikedList(String placeId, HashMap<String, ArrayList<String>> data){

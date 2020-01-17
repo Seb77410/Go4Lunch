@@ -11,6 +11,7 @@ public class User {
     private Boolean alreadySubscribeRestaurant = false;
     private String currentDate;
     private boolean ableNotifications = true;
+    private String subscribeRestaurant = null;
 
     //----------------------------------------------------------------------------------------------
     // Constructors
@@ -38,6 +39,7 @@ public class User {
     public Boolean getAlreadySubscribeRestaurant() {return alreadySubscribeRestaurant;}
     public String getCurrentDate() {return currentDate;}
     public boolean isAbleNotifications() {return ableNotifications;}
+    public String getSubscribeRestaurant() {return subscribeRestaurant;}
 
     //----------------------------------------------------------------------------------------------
     // USetters

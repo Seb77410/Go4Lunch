@@ -6,7 +6,7 @@ public class Constants {
     // Activities arguments values
     //----------------------------------------------------------------------------------------------
 
-    // RestaurantDetails activity Intent arguments values
+    // RestaurantDetailsActivity activity Intent arguments values
     public static final String PLACE_DETAILS ="PLACE_DETAILS";
 
     // WebView Activity intent arguments value
@@ -30,6 +30,7 @@ public class Constants {
     public static final String ALREADY_SUBSCRIBE_RESTAURANT = "alreadySubscribeRestaurant";
     public static final String CURRENT_DATE = "currentDate";
     public static final String ABLE_NOTIFICATIONS = "ableNotifications";
+    public static final String SUBSCRIBE_RESTAURANT_ID = "subscribeRestaurant";
 
     //FireStore BDD collection name
     public static final String USER_COLLECTION_NAME ="users";
@@ -92,9 +93,15 @@ public class Constants {
     static final int NOTIFICATIONS_ID = 3;
 
     //----------------------------------------------------------------------------------------------
-    // RestaurantDetails activity
+    // RestaurantDetailsActivity activity
     //----------------------------------------------------------------------------------------------
 
     // ACTION_CALL Intent value
     public static final String TEL = "tel:";
+
+    //----------------------------------------------------------------------------------------------
+    // Place time values
+    //----------------------------------------------------------------------------------------------
+    static final String H ="h";
+    static final String closing_until ="Closing until ";
 }

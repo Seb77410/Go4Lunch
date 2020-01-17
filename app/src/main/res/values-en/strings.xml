@@ -28,4 +28,6 @@
     <string name="restaurant">"Restaurant : "</string>
     <string name="workmates">"Workamtes : "</string>
     <string name="address">"Address : "</string>
+    <string name="place_is_open_until">"Open until "</string>
+    <string name="place_is_closing_soon">Closing soon</string>
 </resources>

@@ -1,13 +1,17 @@
 package com.application.seb.go4lunch.controller;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -42,7 +46,7 @@ import java.util.Objects;
 
 import io.reactivex.observers.DisposableObserver;
 
-public class RestaurantDetails extends AppCompatActivity {
+public class RestaurantDetailsActivity extends AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     // For data
@@ -60,6 +64,7 @@ public class RestaurantDetails extends AppCompatActivity {
     String currentDate = Helper.setCurrentDate(Calendar.getInstance());
     ArrayList<String> placeLikeList = new ArrayList<>();
     String placeId;
+    Toolbar mToolbar;
 
     //----------------------------------------------------------------------------------------------
     // OnCreate
@@ -81,11 +86,33 @@ public class RestaurantDetails extends AppCompatActivity {
         placeWebSiteButton = findViewById(R.id.restaurant_details_website_image);
 
         askForCallPermission();
+        configureBackStack();
         // Show restaurant details
         getActivityArgs();
         getPlaceDetails();
 
     }
+
+    //----------------------------------------------------------------------------------------------
+    // Back stack
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * This method configure toolbar back stack
+     */
+    private void configureBackStack(){
+        mToolbar = findViewById(R.id.activity_restaurant_details_toolbar);
+        setSupportActionBar(mToolbar);
+        // Set back stack
+        Drawable upArrow = ResourcesCompat.getDrawable(this.getResources(), R.drawable.ic_arrow_white_24dp, null);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeAsUpIndicator(upArrow);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+    }
+
 
     //----------------------------------------------------------------------------------------------
     // Showing restaurant details on UI
@@ -120,11 +147,11 @@ public class RestaurantDetails extends AppCompatActivity {
                         placeAddress.setText(value.getResult().getVicinity());
                         getPlaceLikedList();
                         getRestaurantSubscribersList();
-                        setFloatingButton();
                         setPlaceImage(value);
                         setPlaceRatingBar(value);
                         setCallButton(value);
                         setWebSiteButton(value);
+                        setFloatingButton(value);
                     }
 
                     @Override
@@ -231,14 +258,26 @@ public class RestaurantDetails extends AppCompatActivity {
     /**
      * This method configure current FloatingButton view
      */
-    private void setFloatingButton(){
+    private void setFloatingButton(GooglePlaceDetailsResponse value){
         // Get current FireStore user document
         FireStoreUserRequest.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()))
                 .addOnSuccessListener(documentSnapshot -> {
                     // Transform response into User instance
                     User user = documentSnapshot.toObject(User.class);
-                    // If user is not null
-                    if (user != null) {onFloatingButtonClick(user);} // Configure floating button
+                    if (user != null) {
+
+                        // Configure floating button
+                        if (user.getSubscribeRestaurant() != null && user.getSubscribeRestaurant().equals(value.getResult().getPlaceId())) {
+                            subscribeButton.setClickable(false);
+                            subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
+                            subscribeButton.setImageResource(R.drawable.green_check);
+                        }
+                        else {
+                            // Configure floating button click
+                            onFloatingButtonClick(user);
+                        }
+                    }
+
                 });
     }
 
@@ -250,44 +289,57 @@ public class RestaurantDetails extends AppCompatActivity {
      */
     private void onFloatingButtonClick(User user) {
 
-        // If user already subscribed any restaurant
-        if(user.getAlreadySubscribeRestaurant()){
-            // Modify FloatingButton view
-            subscribeButton.setClickable(false);
+        subscribeButton.setClickable(true);
+        // When user click on FloatingButton
+        subscribeButton.setOnClickListener(v -> {
+            // Modify floating button view
+            Log.d("RestaurantDetails", "User just click on Floating button");
             subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
             subscribeButton.setImageResource(R.drawable.green_check);
-        }
-        // If user didn't subscribed any restaurant
-        else {
-            subscribeButton.setClickable(true);
-            // When user click on FloatingButton
-            subscribeButton.setOnClickListener(v -> {
-                // Modify floating button view
-                Log.d("RestaurantDetails", "User just click on Floating button");
-                subscribeButton.setBackgroundTintList(ContextCompat.getColorStateList(getApplicationContext(), R.color.white));
-                subscribeButton.setImageResource(R.drawable.green_check);
 
-                // If user didn't subscribed this restaurant
-                if (!subscribers.contains(FirebaseAuth.getInstance().getUid())) {
-                    // Add user into restaurant subscribers list
-                    subscribers.add(FirebaseAuth.getInstance().getUid());
-                    HashMap<String, ArrayList<String>> data = new HashMap<>();
-                    data.put(Constants.SUBSCRIBERS_LIST, subscribers);
-                    FireStoreRestaurantRequest.updateSubscribersList(placeId, currentDate, data)
-                            .addOnSuccessListener(aVoid -> startSubscribersRecyclerView());
-                    // Update user value
-                    FireStoreUserRequest.updateUserSubscribeBoolean(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()));
-                    // And save restaurant
-                    saveSubscribePlace();
-                }
-            });
+            // Remove user from restaurant subscribers list
+            removeUserFromOldSubscribersList(user);
+
+            // And save restaurant
+            saveSubscribePlaceName();
+            // Update user value
+            FireStoreUserRequest.updateUserSubscribeBoolean(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()));
+            FireStoreUserRequest.updateUserRestaurant(Objects.requireNonNull(FirebaseAuth.getInstance().getUid()), placeId);
+            // Update current restaurant subscribers list
+            subscribers.add(FirebaseAuth.getInstance().getUid());
+            Log.e("SUBSCRIBERS ", subscribers.toString());
+            FireStoreRestaurantRequest.updateSubscribersList(placeId, currentDate,new SubscribersCollection(currentDate, subscribers))
+                    .addOnSuccessListener(aVoid -> {
+                        startSubscribersRecyclerView();
+                        Log.e("SUBSCRIBERS LIST", "SAVE");
+                    });
+
+        });
+    }
+
+    /**
+     * This method remove user from all restaurant subscribers list
+     * @param user is current user instance
+     */
+    private void removeUserFromOldSubscribersList(User user){
+        if (user.getSubscribeRestaurant() != null) {
+            FireStoreRestaurantRequest.getSubscriberList(user.getSubscribeRestaurant(), currentDate)
+                    .addOnSuccessListener(documentSnapshot -> {
+                        SubscribersCollection subscribersCollection = documentSnapshot.toObject(SubscribersCollection.class);
+                        if (subscribersCollection != null) {
+                            subscribersCollection.getSubscribersList().remove(user.getUid());
+                            FireStoreRestaurantRequest.restaurantSubscribersCollection(user.getSubscribeRestaurant())
+                                    .document(currentDate)
+                                    .set(subscribersCollection);
+                        }
+                    });
         }
     }
 
     /**
      * This method save current place id into sharedPreference
      */
-    private void saveSubscribePlace(){
+    private void saveSubscribePlaceName(){
         SharedPreferences sharedPreferences = getSharedPreferences(Constants.SUBSCRIBE_PLACE_PREF, MODE_PRIVATE);
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         Intent intent = getIntent();
@@ -407,6 +459,7 @@ public class RestaurantDetails extends AppCompatActivity {
             }
         });
     }
+
 
 
 }

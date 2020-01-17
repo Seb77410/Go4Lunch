@@ -40,7 +40,11 @@
         </activity>
         <activity android:name=".controller.MainActivity" />
         <activity android:name=".controller.WebViewActivity" />
-        <activity android:name=".controller.RestaurantDetails" />
+        <activity android:name=".controller.RestaurantDetailsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".controller.MainActivity" />
+        </activity>
 
         <uses-library
             android:name="org.apache.http.legacy"
